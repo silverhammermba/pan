@@ -12,18 +12,100 @@ of Personalized Warfarin Dosing}
 
 \section{Summary}
 
-problem, importance, approach, contributions
+The paper covers three related problems:
+
+\begin{enumerate}
+	\item Does a linear regression model for warfarin doses leak private information
+about the patients' genetic information?
+\item Can differential privacy prevent information leak from the linear
+regression model?
+\item Does differential privacy preserve the utility of doses derived from the
+linear regression?
+\end{enumerate}
+
+The answer to the first question is of course yes, since the rest of the paper
+is about handling that privacy leak. The answer to the second question is
+also yes, since certain values of $\varepsilon$ were shown to prevent attackers
+from guessing the patients' genetic attributes. The answer to the third question
+is unfortunately no, because using $\varepsilon$ small enough to prevent privacy
+leaks significantly increased the mortality risk for warfarin doses.
+
+These questions are important because while medicine seeks to benefit greatly
+from gene-specific treatment regimens, patients will most likely want their
+genetic privacy preserved. This will be impossible if anyone who knows your
+prescription dosage can easily reverse-engineer your genetic data.
+
+Their approach begins by constructing a standard linear regression model from a
+typical dataset that should be similar to private genetic datasets. Then they
+develop an inversion attack against this model for predicting the presence of
+the two genetic markers relevant to warfarin dosage. They also demonstrate that
+in the absence of uncertainty in the model, this attack is ideal in the sense
+that it minimizes misclassification by the attacker.
+
+Then they discuss two methods of applying differential privacy: private
+histograms and private linear regression. They find that for both methods, lower
+values of $\varepsilon$ decrease the amount of information leaked, but for
+histograms the prevention is less effective overall. Lastly they simulate
+applying their models to actual patients and find that for privacy-preserving
+levels of $\varepsilon$, the difference in assigned dosage is dangerous.
+
+Their contributions mainly consisted of integrating several knows methods from
+different fields into an end-to-end study. Although their attack was somewhat
+novel, it was derived in a straightforward way to maximize success probability
+against their specific machine learning model.
 
 \section{Strengths}
 
-likes, why
+The end-to-end nature of the study is its greatest strength. Most academic
+papers focus on a particular feature and, as a result, can only speculate on the
+implications of the research. This allows the authors to deliver a simple,
+data-driven, direct conclusion from a complicated topic: that privacy and
+utility can be at odds in a way that rules out differential privacy.
 
 \section{Weaknesses}
 
-dislikes, why
+The authors mention several times that they are technically misapplying
+differential privacy in order to protect specific attributes of participants,
+rather than the presence of participants themselves. While this misuse of
+differential privacy is understandable and most likely not problematic, it
+deserves deeper consideration than they give it. It seems like it should be
+possible to prove mathematically that principles of differential privacy still
+apply in this situation, but they merely hand-wave over it by stating that it
+deters their attack, and is thus appropriate.
+
+The conclusion is stated a little too braodly in that they claim that in a
+situation such as theirs, ``alternative means of protecting individual privacy
+{\it must} be employed'' (emphasis added). This glosses over the nuance within
+the paper: that there is a smooth tradeoff between differential privacy and
+dosage utility. For acceptable levels of dosage variance, differential privacy
+still offers some (small) amount of privacy over na\"ive methods. Depending on
+patients' willingness to accept a privacy risk, or the danger of changing drug
+dosage, the methods described in the paper may be perfectly appropriate.
+
+While the end-to-end nature is a strength of the paper, it is also a weakness.
+The broadness of the topic demands that many dependent steps be taken in order
+to draw any conclusion. However this means if any flaw or alternative paradigm
+is discovered in any step, their conclusion is invalidated. For example, it
+may be found that there are superior methods of applying differential privacy to
+attribute privacy, which would invalidate almost the entire paper as the basic
+premise would need to be reevaluated. Or suppose that it is found that there
+exists a vastly superior machine learning model for prescribing warfarin; this
+too would invalidate much of their work.
 
 \section{What If?}
 
-what would i do better if i were them
+The main difference in my approach in this research topic would be to break out
+certain aspects of it into separate research papers. One example would be the
+attribute privacy protection mentioned earlier. Another candidate would be the
+application of differential privacy to machine learning models in general. Much
+of their research focused on the specific linear regression models used for
+warfarin, but the effectiveness of differential privacy would certainly change
+depending on the model used. This is especially important since the model may
+not be a black box as it is in their paper, making the privacy attack vector
+entirely model-dependant (as mentioned in the related work of Komarova {\t et
+al.}).
+
+This separate research would provide a more stable foundation for such
+end-to-end studies.
 
 \end{document}
