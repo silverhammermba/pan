@@ -1,0 +1,60 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb,enumerate,mathtools}
+\usepackage[margin=1in]{geometry}
+
+\title{CSE 450 Project Proposal:\\Crowdsourced Reverse Data Mining}
+\author{Maxwell Anselm}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Objectives}
+
+Many web companies extensively employ data mining techniques to create
+personalized web experiences. Targeted ads and product recommendations are
+common examples of this. The prerequisite of such personalization
+is access to personal data in order for the data mining algorithms to build a
+profile of the user. Unfortunately, the volume of data required is so large
+that---rather than asking users for specific targeting information---companies
+simply mine {\it all} of the users' data (or as much as they can get their hands
+on). This can be viewed as breach of privacy, since companies are not making
+clear what personal data they are exploiting for the purpose of personalization,
+and users are unaware of exactly how much information they are divulging by
+using the service.
+
+The goal of this project is to investigate various methods of uncovering which
+data companies are mining from users in order to personalize their content.
+Specifically, I will consider methods that utilize user collaboration in order
+to build a body of data sufficient to accurately determine the mined information
+based on the personalized content.
+
+This will involve theoretical work in the feasibility and privacy-preservation
+of such methods. It may also involve proof-of-concept code to determine
+practicality of any methods found.
+
+\section{Related Work}
+
+This project is primarily inspired by XRay differential correlation tool. XRay
+attempts to track personal data use on the web through the use of
+locally-created fake accounts. The method is theoretically sound, but seems
+impractical in real-world applications. This project seeks to bypass that
+impracticality by replacing the fake accounts with (anonymized) real accounts
+from other volunteer users.
+
+\section{Plan}
+
+I plan to first study the XRay tool in more detail. This project has a very
+similar goal, so it is likely that several aspects of the XRay tool can be
+applied as-is.
+
+Afterwards I will attempt to prove how crowdsourcing can be applied to the
+problem without comprosing user privacy while still allowing for differential
+correlation.
+
+Lastly (assuming success of the previous parts) I will try to build
+proof-of-concept software to test the practical aspects. For example, whether
+the computations can be done efficiently and the measurable accuracy of the
+results.
+
+\end{document}
