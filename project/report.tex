@@ -1,0 +1,164 @@
+\documentclass{article}
+\usepackage{./nips15submit_e}
+%\usepackage{amsmath,amssymb,enumerate,mathtools}
+
+\title{Private Attribution Networks}
+\author{
+Maxwell Anselm\\
+Lehigh University\\
+Bethlehem, PA 18015\\
+\texttt{mba210@lehigh.edu}\\
+}
+
+\nipsfinalcopy
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+motivation, summary, takeaway
+
+Peer-to-peer (P2P) networks are a common tool for sharing information. Most P2P
+architectures are completely open: the identities of the participants and the
+data available in the network are available to the public. When privacy is
+applied ot P2P networks, it is usually done in a way that completely closes down
+the network: by making membership in the network invite-only\cite{privatep2p}.
+
+We define a new kind of privacy for P2P networks called ``attribution privacy''
+which exists in a traditional open network. Attribution privacy formalizes
+the notion that sharing public information among public peers can still leak
+private information. We give examples of both real world and technical
+applications where attribution privacy is a concern. We also classify when
+attribution privacy leaks can occur and measure the potential risk to peers
+participating in such a network.
+
+Lastly we introduce a particular kind of open P2P network---a private attribution
+network---in which attribution privacy can be maintained to some degree. We
+measure the strength of this protection as well as the impact it has on the
+network's performance.
+
+\section{Related Work}
+
+XRay, Chord (P2P), TOR, BitTorrent
+
+\section*{Main sections follow}
+
+solution, implementation, main challenges overcome
+
+\section{Definitions}
+
+We first define what information sharing means in our P2P network. We
+imagine a P2P network in which there are a fixed number of peers (the
+swarm) and all peers are aware of the other members of the swarm via some
+central authority (the tracker). These peers exchange messages via some secure
+channel such as HTTPS (perhaps using public keys synchronised through the
+tracker). Thus which peers are communicating with which is public information,
+while the contents of those messages is kept private from an observer.
+
+Let $\mathcal{Q}$ be a set of public queries and let $\mathcal{D}$ be a set of
+public data about those queries. Intuitively, the elements of $\mathcal{Q}$
+represent the queries that a peer might make to other peers in the swarm, and
+$\mathcal{D}$ represents potential responses to those queries. Then we define a
+function $K:\mathcal{Q}\rightarrow 2^\mathcal{D}$ which maps queries to the set
+of possible responses to each query i.e. $\forall q\in\mathcal{Q},
+K(q)\subseteq\mathcal{D}$. The reason why peers participate in the network is to
+learn more about the ``knowledge function'' $K$. For example, we can imagine
+$\mathcal{Q}$ as a set of file names and $\mathcal{D}$ as a set of file
+fragments; then $K$ indicates which fragments correspond to which files (and
+which are reused across multiple files), so determining the value of $K(q)$
+amounts to downloading file $q$. Formally, a response $D\subseteq\mathcal{D}$ to
+a query $q\in\mathcal{Q}$ indicates that $D\subseteq K(q)$.
+
+Next we define $\mathcal{S}$ to be the set of original sources of knowledge
+about $K$ in the network. If a peer possesses some source $s\in\mathcal{S}$,
+then they can receive some information $D_s\subseteq K(q_s)$ {\it without}
+querying another peer in the network. In this case we say that the peer {\it
+originates} (or is the {\it origin} of) $D_s\subseteq K(q_s)$. We assume that
+the network is otherwise closed, so if a peer wants to learn about $K(q)$ for
+some $q$, there need to be peers in the network with sources peratining to $q$.
+
+For attribution privacy to come into play we need two conditions to hold:
+\begin{enumerate}
+	\item The sources must be private. That is, a peer with access to some
+		$s\in\mathcal{S}$ does not want it to be known publicly.
+	\item The relationship between $D_s\subseteq K(q_s)$ and $s\in\mathcal{S}$
+		must be public. That is, a peer who sees the response $D\subseteq K(q)$
+		will know which sources in $\mathcal{S}$ it might have originated from.
+\end{enumerate}
+
+If these conditions hold, then it is possible for a public peer to share public
+data about a public query, and in doing so inadvertantly communicate information
+about its private sources. That is an attribution privacy leak.
+
+\section{Applications}
+\label{example}
+
+\subsection{Nickelback}
+
+A simple (somewhat facetious) example is of a small town in which no one likes
+the Canadian rock band Nickelback. Here we imagine the townspeople as nodes in
+the P2P network. If you (being a huge Nickelback fan) were to move to this town,
+you might find yourself in the uncomfortable situation where a Nickelback song
+comes on the radio and people are curious what the name is and who performs it.
+In this situation, $\mathcal{S}$ contains the property ``being a Nickelback
+fan'' (a source of knowledge about Nickelback songs). $\mathcal{Q}$ contains the
+unidentified song on the radio, $\mathcal{D}$ contains song names, and $K$ maps
+the unidentified song to the correct name. The curious members of the town query
+for name of the song, and you would honestly like to provide it.
+
+However, being that you are the only Nickelback fan in town, doing so would
+prove to whomever you tell that you {\it originate} the knowledge of the correct
+song name. The townspeople would be able to apply their public knowledge of the
+sources to discover your private information: namely that a person who knows the
+name of a random Nickelback song is probably a Nickelback fan. By honestly
+providing the requested data, you have inadvertently revealed your private
+source. This is a P2P network where private attribution is needed.
+
+\subsection{XRay}
+
+For a more technical example, consider the tool XRay\cite{xray}. XRay audits
+online advertisements to reverse-engineer the ad targeting criteria and thus
+determine if a company is exploiting one's sensitive information. It does this
+using a complicated system of data duplication and fake account management, but
+the authors note that ``a collaborative approach to auditing, in which users
+contribute their [data] in a privacy-preserving way is a promising
+direction...'' In such a system, users would participate in a P2P network where
+they freely share which ads they have seen and in association with which
+personal information. Then the network could collaborate to determine the ad
+targeting criteria.
+
+In this situation, $\mathcal{Q}$ is the set of online ads, $\mathcal{D}$ is the
+set of personal information that might be targeted, and $K$ represents the ad
+targeting criteria i.e. which personal data are targeted by which ads.
+Interestingly, the private sources $\mathcal{S}$ in this case are identical to
+$\mathcal{D}$: if you originate the knowledge that a particular ad targets
+particular data, then informing others of that association also divulges that
+you possess the targeted data. Such a P2P network must consider its members'
+attribution privacy.
+
+\section{Privacy Risk}
+
+To measure the attribution privacy risk in a P2P network, we start by
+considering the worst-case scenario.
+
+\section{Evaluation}
+
+How well does it work?
+
+\section{Discussion \& Conclusion}
+
+\begin{thebibliography}{9}
+
+\bibitem{xray}
+	M. L\'ecuyer, G. Ducoffe, F. Lan, A. Papancea, T. Petsios, R. Spahn, A. Chaintreau, and R. Geambasu.
+	XRay: Enhancing the Web’s Transparency with Differential Correlation.
+	\emph{USENIX Security}, 2014.
+
+\bibitem{privatep2p}
+	M. Rogers, S. Bhatti.
+	How to Disappear Completely: A Survey of Private Peer-to-Peer Networks.
+	\emph{Sustaining Privacy in Autonomous Collaborative Environments (SPACE)}, 2007.
+
+\end{thebibliography}
+
+\end{document}
