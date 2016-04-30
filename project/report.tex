@@ -1,6 +1,9 @@
 \documentclass{article}
-\usepackage{./nips15submit_e}
+\usepackage{./nips15submit_e,amsmath}
 %\usepackage{amsmath,amssymb,enumerate,mathtools}
+
+\newcommand{\eqnref}[1]{equation \eqref{eq:#1}}
+\newcommand{\Eqnref}[1]{Equation \eqref{eq:#1}}
 
 \title{Private Attribution Networks}
 \author{
@@ -32,10 +35,10 @@ applications where attribution privacy is a concern. We also classify when
 attribution privacy leaks can occur and measure the potential risk to peers
 participating in such a network.
 
-Lastly we introduce a particular kind of open P2P network---a private attribution
-network---in which attribution privacy can be maintained to some degree. We
-measure the strength of this protection as well as the impact it has on the
-network's performance.
+We consider several modifications that can be made to the P2P protocol in order
+to mitigate the attribution privacy leaks, and measure their efficacy as well as
+their performance impact. Lastly we define a private attribution network, which
+combines these methods to provide a balance of privacy and performance.
 
 \section{Related Work}
 
@@ -96,7 +99,7 @@ about its private sources. That is an attribution privacy leak.
 \subsection{Nickelback}
 
 A simple (somewhat facetious) example is of a small town in which no one likes
-the Canadian rock band Nickelback. Here we imagine the townspeople as nodes in
+the Canadian rock band Nickelback. Here we imagine the townspeople as peers in
 the P2P network. If you (being a huge Nickelback fan) were to move to this town,
 you might find yourself in the uncomfortable situation where a Nickelback song
 comes on the radio and people are curious what the name is and who performs it.
@@ -139,7 +142,101 @@ attribution privacy.
 \section{Privacy Risk}
 
 To measure the attribution privacy risk in a P2P network, we start by
-considering the worst-case scenario.
+considering the worst-case scenario. Suppose that for knowledge about some $q$
+there is only a single source $s$, only a single peer $x$ with access to that
+source (i.e. a single origin), and that $x$ has not shared any knowledge of $q$
+with the rest of the network. Another peer $y$ who wants to learn about $K(q)$
+might then query {\it every peer} in the network for knowledge about $q$. Since
+$x$ has not previously shared information about $q$, every peer will respond
+with no knowledge except for $x$.
+
+$y$ now knows that of all the peers, only $x$ has knowledge about $q$. Because
+the network is closed, $y$ also knows that there must be a source for $q$ among
+the peers who know about $q$. Thus $x$ must possess a source for $q$ and since
+we assumed there was only one such source, it must be $s$. Thus by sharing their
+knowledge about $q$, $x$ has inadvertently shared the fact that they possess
+source $s$.
+
+We can reason that this is the worst possible case as follows: if there were
+multiple sources related to $q$, then $y$ would only know that $x$ possesses one
+of those sources; it would not necessarily know which one. Also, if there were
+multiple peers with access to a source for $q$, then multiple peers would
+respond when $y$ queries every peer about $q$. The same would occur if $x$ had
+previously shared knowledge about $q$ with other peers in the network. In both
+of these cases we can quantify the information gained by $y$. Let $S$ be the
+event that one of the peers who has knowledge of $q$ is an origin (i.e. has
+source $s$) and let $H$ be the number of peers who have the knowledge and thus
+respond to the query.
+If $k$ peers respond to the query, then we can express $P(S|H=k)$ in terms of
+$P(S)$:
+\begin{align}
+	P(S|H=k)&=P(S|\text{one of the $k$ is a source})=\frac{P(S\cap\text{one of
+	the $k$ is a source})}{P(\text{one of the $k$ is a source})}\nonumber\\
+	&=\frac{P(S)}{1-P(\text{none of the $k$ are sources})}\label{eq:psksub}\\
+	&=\frac{P(S)}{1-(1-P(S))^k}\label{eq:psk}
+\end{align}
+Note that we can simplify to \eqref{eq:psksub} because the event $S$ is included
+in the event that one of the $k$ responders is a source. Note also that
+$P(S|H=k)>P(S)$ for $P(S)\in(0,1)$. When $k=1$ (which is our previous assumption
+that there is only one origin), $P(S|H=k)=1$ which agrees with our reasoning
+that $y$ knows definitively that $x$ has source $s$. Thus if more than one peer
+responds (either by multiple sources or by $x$ sharing knowledge), $y$ cannot be
+certain whether $x$ has a source.
+
+Going back to our original worst-case assumptions, suppose that after $y$
+queries, another peer $z$ queries for information about $q$. Now we are in the
+previously discussed weaker case: {\it two} peers will respond with knowledge
+about $q$ ($x$ and $y$)! Thus $z$'s information about $s$ is only $P(S|H=2)<1$.
+In general---where $H$ is the number of peers in the network who have knowledge
+about $q$---if $H=k$ then the worst case is that the next peer who queries will
+gain the information $P(S|H=k)$ about one of the responding peers possessing
+$s$. The goal of a private attribution network is to provide some probability
+less than $P(S|H=k)$.
+
+\subsection{Unreliable Origins}
+
+One simple approach to improving the privacy of network is for the origins to be
+unreliable i.e. let $P(\text{respond to a query about }q|\text{have source
+}s)=r<1$. Now when $y$ queries the entire network, they can no longer be sure
+that the peers who respond are all the peers who have the relevant knowledge.
+Thus we now have a new random variable $M\ne H$ which is the number of peers who
+respond to a query about $q$.
+
+If $m$ peers respond to a query, in order to calculate the posterior, $y$ must
+consider how many peers in the network actually have knowledge about $q$, which
+can range from $m$ to $n-1$ (since $y$ does not know about $q$).
+\begin{align}
+	P(S|M=m)&=\sum_{k=m}^{n-1}P(S\cap H=k|M=m)\nonumber\\
+	&=\sum_{k=m}^{n-1}\frac{P(S\cap H=k\cap M=m)}{P(M=m)}\frac{P(H=k\cap
+	M=m)}{P(H=k\cap M=m)}\nonumber\\
+	&=\sum_{k=m}^{n-1}P(S|H=k\cap M=m)P(H=k|M=m)\nonumber\\
+	&=\sum_{k=m}^{n-1}P(S|H=k)\frac{P(M=m|H=k)P(H=k)}{P(M=m)}\label{eq:psmsimp}\\
+	&=\frac{1}{P(M=m)}\sum_{k=m}^{n-1}P(S|H=k)P(M=m|H=k)P(H=k)\label{eq:psmbig}
+\end{align}
+where $P(S|H=k)$ is calculated as in \eqnref{psk} and we can simplify to
+\eqref{eq:psmsimp} because $S$ is independent of $M$ if we know $H=k$.
+We see that now the posterior probability of a source depends on the prior
+distribution of knowledge in the network $H$. We also see the prior probability
+of $M$, but this too can be expressed in terms of $H$:
+\begin{align*}
+	P(M=m)=\sum_{k=m}^{n-1}P(M=m\cap H=k)=\sum_{k=m}^{n-1}P(M=m|H=k)P(H=k)
+\end{align*}
+
+Lastly we observe that $P(M=m|H=k)$ is simply given by the binomial
+distribution $b(m,k,r)$: the probability of $m$ successes out of $k$ trials where
+each trial has probability $r$ of success. Substituting into \eqnref{psmbig} gives us
+\begin{align*}
+	P(S|M=m)=\frac{\sum_{k=m}^{n-1}P(S|H=k)b(m,k,r)P(H=k)}{\sum_{k=m}^{n-1}b(m,k,r)P(H=k)}
+\end{align*}
+
+We note that if $P(H=k)=1$ for some $k$, then $P(S|M=m)=P(S|H=k)$ as before.
+
+\subsection{Extra Responses}
+
+Since $P(S|H=k)$ approaches $P(S)$ as $k$ increases, another method of
+preserving privacy would be for the peers responding to queries to force $k$ to
+be large. For example, suppose that whenever a peer responds to a query it also
+sends that response to $e$ random peers
 
 \section{Evaluation}
 
