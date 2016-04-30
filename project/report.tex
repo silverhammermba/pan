@@ -1,9 +1,13 @@
 \documentclass{article}
-\usepackage{./nips15submit_e,amsmath}
+\usepackage{./nips15submit_e,amsmath,amsthm}
 %\usepackage{amsmath,amssymb,enumerate,mathtools}
 
 \newcommand{\eqnref}[1]{equation \eqref{eq:#1}}
 \newcommand{\Eqnref}[1]{Equation \eqref{eq:#1}}
+\newcommand{\secref}[1]{section \ref{sec:#1}}
+\newcommand{\Secref}[1]{Section \ref{sec:#1}}
+
+\newtheorem{theorem}{Theorem}
 
 \title{Private Attribution Networks}
 \author{
@@ -67,8 +71,8 @@ of possible responses to each query i.e. $\forall q\in\mathcal{Q},
 K(q)\subseteq\mathcal{D}$. The reason why peers participate in the network is to
 learn more about the ``knowledge function'' $K$. For example, we can imagine
 $\mathcal{Q}$ as a set of file names and $\mathcal{D}$ as a set of file
-fragments; then $K$ indicates which fragments correspond to which files (and
-which are reused across multiple files), so determining the value of $K(q)$
+fragments; then $K$ indicates which fragments correspond to which file names (and
+which are reused across multiple file names), so determining the value of $K(q)$
 amounts to downloading file $q$. Formally, a response $D\subseteq\mathcal{D}$ to
 a query $q\in\mathcal{Q}$ indicates that $D\subseteq K(q)$.
 
@@ -78,7 +82,7 @@ then they can receive some information $D_s\subseteq K(q_s)$ {\it without}
 querying another peer in the network. In this case we say that the peer {\it
 originates} (or is the {\it origin} of) $D_s\subseteq K(q_s)$. We assume that
 the network is otherwise closed, so if a peer wants to learn about $K(q)$ for
-some $q$, there need to be peers in the network with sources peratining to $q$.
+some $q$, there need to be peers in the network with sources pertaining to $q$.
 
 For attribution privacy to come into play we need two conditions to hold:
 \begin{enumerate}
@@ -90,11 +94,10 @@ For attribution privacy to come into play we need two conditions to hold:
 \end{enumerate}
 
 If these conditions hold, then it is possible for a public peer to share public
-data about a public query, and in doing so inadvertantly communicate information
+data about a public query, and in doing so inadvertently communicate information
 about its private sources. That is an attribution privacy leak.
 
-\section{Applications}
-\label{example}
+\section{Applications}\label{sec:example}
 
 \subsection{Nickelback}
 
@@ -140,6 +143,7 @@ you possess the targeted data. Such a P2P network must consider its members'
 attribution privacy.
 
 \section{Privacy Risk}
+\subsection{Baseline}\label{sec:risk}
 
 To measure the attribution privacy risk in a P2P network, we start by
 considering the worst-case scenario. Suppose that for knowledge about some $q$
@@ -193,9 +197,11 @@ gain the information $P(S|H=k)$ about one of the responding peers possessing
 $s$. The goal of a private attribution network is to provide some probability
 less than $P(S|H=k)$.
 
-\subsection{Unreliable Origins}
+% TODO make this a this theorem to reference
 
-One simple approach to improving the privacy of network is for the origins to be
+\subsection{Unreliable Peers}\label{sec:unreliable}
+
+One simple approach to improving the privacy of the network is for the peers to be
 unreliable i.e. let $P(\text{respond to a query about }q|\text{have source
 }s)=r<1$. Now when $y$ queries the entire network, they can no longer be sure
 that the peers who respond are all the peers who have the relevant knowledge.
@@ -225,18 +231,100 @@ of $M$, but this too can be expressed in terms of $H$:
 Lastly we observe that $P(M=m|H=k)$ is simply given by the binomial
 distribution $b(m,k,r)$: the probability of $m$ successes out of $k$ trials where
 each trial has probability $r$ of success. Substituting into \eqnref{psmbig} gives us
-\begin{align*}
+\begin{equation}\label{eq:psm}
 	P(S|M=m)=\frac{\sum_{k=m}^{n-1}P(S|H=k)b(m,k,r)P(H=k)}{\sum_{k=m}^{n-1}b(m,k,r)P(H=k)}
-\end{align*}
+\end{equation}
 
-We note that if $P(H=k)=1$ for some $k$, then $P(S|M=m)=P(S|H=k)$ as before.
+We note that if $r=1$ then $P(H=m)=1$ and $P(S|M=m)=P(S|H=m)$ as before. But
+for a general distribution on $H$, $P(S|M=m)<P(S|H=m)$ since
+$\forall k~P(S|H=k+1)<P(S|H=k)$ (by \eqnref{psk}) and \eqnref{psm} is
+essentially a weighted sum over these lower-probability terms.
+
+% TODO prove this concretely in a theorem
+
+% TODO performance impact
 
 \subsection{Extra Responses}
 
 Since $P(S|H=k)$ approaches $P(S)$ as $k$ increases, another method of
 preserving privacy would be for the peers responding to queries to force $k$ to
-be large. For example, suppose that whenever a peer responds to a query it also
-sends that response to $e$ random peers
+be large. Specifically, whenever a peer responds to a query it also
+sends that response to each other peer with probability
+$\frac{t}{n-2}$. Since there are $n-2$ peers other than $x$ and $y$, we expect
+that $t$ extra responses will be sent.
+
+Applying this change in protocol to our worst-case situation, we see that $y$
+still knows with $P(S|H=1)=1$ that $x$ has source $s$. However, afterwards $x$,
+$y$, and $t$ random peers are expected to know about $q$ thus the next peer
+to make a query has an expected advantage of only $P(S|H=t+2)$. We can minimize this
+probability by making $t$ even larger: $t=n-2$ means that $x$ sends extra
+responses to every other peer, and then the next peer won't query at all because
+every peer already has the data!
+
+But this view is oversimplified. Although this does minimize the posterior
+probability of $x$ having $s$ following a query, it just leaks the
+information earlier in the process. For example, consider a swarm of just four
+peers $x$, $y$, $\beta$, and $\gamma$ and suppose that $t=2$. $y$ starts as usual by
+querying every peer about $q$ ($x$, $\beta$, and $\gamma$). Only $x$ has knowledge of
+$q$, so it responds to $y$ and sends extra responses with probability
+$t/(n-2)=1$ to peers $\beta$ and $\gamma$. From $\beta$'s perspective, since it received a
+query about $q$ from $y$, it knows that $x$ and $\gamma$ were also queried. Since a
+queried peer always sends extra responses if it has the knowledge, $\beta$ knows that
+every peer who sends it an extra response knows about $q$. It received an extra
+response only from $x$ thus it can apply the same logic as $y$ (in
+\secref{risk}) to deduce that $x$ has $s$.
+
+Clearly, $t=n-2$ is too large. But even smaller values of $t$ leak some privacy to the
+peers receiving extra responses. In fact, the situation generalizes to that of
+\secref{unreliable}: when a query about $q$ is received by a peer $\beta$,
+they expect to receive extra response from each peer that has knowledge of
+$q$ with probability $t/(n-2)$. It is as if $\beta$ itself made the query and each
+peer responds probabilistically, which is exactly the situation with unreliable
+peers, only now $r=t/(n-2)$ and $M$ is the number of extra responses received by
+$\beta$.
+
+The point of sending out random extra responses would be defeated if
+${P(S|M=m)>P(S|H=m)}$ because then the extra responses a peer sends out
+would actually leak more private information than if it were simply queried
+directly. However we showed with \eqnref{psm} that $P(S|M=m)\le P(S|H=m)$ and in
+fact it is strict inequality if $r<1$ i.e. if $t<n-2$.
+
+Thus $t$ can be any value other than $n-2$, but what should it be? We first note
+a major difference from \secref{unreliable}: an attacker in this case
+has some control over $r$ and thus $M$. If we have a swarm of $n$ peers,
+an attacker can add $b$ malicious peers to the swarm. These malicious peers can
+share information among themselves, such as who they have received extra
+responses from. In effect, the $b$ peers behave like a single peer that has a
+higher chance of receiving extra responses.
+
+\begin{theorem}
+	If extra responses are sent with probability $\frac{t}{n-2}$, then an
+	attacker inserting malicious peers into the network can guarantee that they
+	will receive extra responses with probability at most $1-1/e^t$.
+\end{theorem}
+\begin{proof}
+Let $B$ be the event that at least one of the $b$ malicious peers is sent an extra
+	response and let $n$ be the original number of nodes in the network. Then:
+\begin{align*}
+	P(B)&=1-P(\neg B)\\
+	&=1-\left(1-P(\text{a particular malicious peer gets an extra response})\right)^b\\
+	&=1-\left(1-\frac{t}{n+b-2}\right)^b\\
+	\lim_{b\rightarrow\infty}P(B)&=1-\frac{1}{e^t}
+\end{align*}
+\end{proof}
+Even at $t=5$ this probability is very close to 1. So to defend against these
+attacks $t$ should be kept as small as possible.
+
+% TODO figure out how good small t's are though
+
+Note that this leak also relies largely on the assumption that every peer
+queries every other peer in order to greedily determine as much private
+information as possible. In an actual P2P network, it is not necessary for each
+peer to query every other peer. Thus with non-greedy peers, when a peer (or
+group of malicious peers) is
+{\it not} sent an extra response it is possible that it will also {\it not} receive the
+corresponding query for $q$---in which case it will be completely oblivious to the
+entire exchange and no leak will occur.
 
 \section{Evaluation}
 
