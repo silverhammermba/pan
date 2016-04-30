@@ -235,12 +235,27 @@ each trial has probability $r$ of success. Substituting into \eqnref{psmbig} giv
 	P(S|M=m)=\frac{\sum_{k=m}^{n-1}P(S|H=k)b(m,k,r)P(H=k)}{\sum_{k=m}^{n-1}b(m,k,r)P(H=k)}
 \end{equation}
 
-We note that if $r=1$ then $P(H=m)=1$ and $P(S|M=m)=P(S|H=m)$ as before. But
-for a general distribution on $H$, $P(S|M=m)<P(S|H=m)$ since
-$\forall k~P(S|H=k+1)<P(S|H=k)$ (by \eqnref{psk}) and \eqnref{psm} is
-essentially a weighted sum over these lower-probability terms.
+\begin{theorem}
+	$P(S|M=m)\le P(S|H=m)$ and this inequality is strict if $r<1$.
+\end{theorem}
+\begin{proof}
+	Suppose that $r=1$, then $P(H=m)=1$ so \eqnref{psm} simplifies to
+	\begin{equation*}
+		P(S|M=m)=\frac{P(S|H=m)b(m,m,r)P(H=m)}{b(m,m,r)P(H=m)}=P(S|H=m)
+	\end{equation*}
+	Now suppose $r<1$, by \eqnref{psk} we have that
+	\begin{equation*}
+		P(S|H=k+1)=\frac{P(S)}{1-(1-P(S))^{k+1}}<\frac{P(S)}{1-(1-P(S))^k}=P(S|H=k)
+	\end{equation*}
+	therefore
+	\begin{align*}
+		P(S|M=m)&=\frac{\sum_{k=m}^{n-1}P(S|H=k)b(m,k,r)P(H=k)}{\sum_{k=m}^{n-1}b(m,k,r)P(H=k)}\\
+		&<\frac{\sum_{k=m}^{n-1}P(S|H=m)b(m,k,r)P(H=k)}{\sum_{k=m}^{n-1}b(m,k,r)P(H=k)}\\
+		&=P(S|H=m)\frac{\sum_{k=m}^{n-1}b(m,k,r)P(H=k)}{\sum_{k=m}^{n-1}b(m,k,r)P(H=k)}\\
+		&=P(S|H=m)
+	\end{align*}
+\end{proof}
 
-% TODO prove this concretely in a theorem
 
 % TODO performance impact
 
