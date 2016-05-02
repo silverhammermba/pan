@@ -6,6 +6,7 @@
 \newcommand{\Eqnref}[1]{Equation \eqref{eq:#1}}
 \newcommand{\secref}[1]{section \ref{sec:#1}}
 \newcommand{\Secref}[1]{Section \ref{sec:#1}}
+\newcommand{\thref}[1]{Theorem \ref{th:#1}}
 
 \newtheorem{theorem}{Theorem}
 
@@ -27,8 +28,8 @@ motivation, summary, takeaway
 
 Peer-to-peer (P2P) networks are a common tool for sharing information. Most P2P
 architectures are completely open: the identities of the participants and the
-data available in the network are available to the public. When privacy is
-applied ot P2P networks, it is usually done in a way that completely closes down
+data being shared in the network are available to the public. When privacy is
+applied to P2P networks, it is usually done in a way that completely closes down
 the network: by making membership in the network invite-only\cite{privatep2p}.
 
 We define a new kind of privacy for P2P networks called ``attribution privacy''
@@ -39,7 +40,7 @@ applications where attribution privacy is a concern. We also classify when
 attribution privacy leaks can occur and measure the potential risk to peers
 participating in such a network.
 
-We consider several modifications that can be made to the P2P protocol in order
+We consider a couple modifications that can be made to the P2P protocol in order
 to mitigate the attribution privacy leaks, and measure their efficacy as well as
 their performance impact. Lastly we define a private attribution network, which
 combines these methods to provide a balance of privacy and performance.
@@ -142,8 +143,8 @@ particular data, then informing others of that association also divulges that
 you possess the targeted data. Such a P2P network must consider its members'
 attribution privacy.
 
-\section{Privacy Risk}
-\subsection{Baseline}\label{sec:risk}
+\section{Privacy Risk}\label{sec:prrsk}
+\subsection{Baseline}\label{sec:baseline}
 
 To measure the attribution privacy risk in a P2P network, we start by
 considering the worst-case scenario. Suppose that for knowledge about some $q$
@@ -168,11 +169,11 @@ multiple peers with access to a source for $q$, then multiple peers would
 respond when $y$ queries every peer about $q$. The same would occur if $x$ had
 previously shared knowledge about $q$ with other peers in the network. In both
 of these cases we can quantify the information gained by $y$. Let $S$ be the
-event that one of the peers who has knowledge of $q$ is an origin (i.e. has
+event that one of the peers is an origin for $q$ (i.e. has
 source $s$) and let $H$ be the number of peers who have the knowledge and thus
 respond to the query.
 If $k$ peers respond to the query, then we can express $P(S|H=k)$ in terms of
-$P(S)$:
+$P(S)$, the prior probability of a peer being an origin:
 \begin{align}
 	P(S|H=k)&=P(S|\text{one of the $k$ is a source})=\frac{P(S\cap\text{one of
 	the $k$ is a source})}{P(\text{one of the $k$ is a source})}\nonumber\\
@@ -183,7 +184,7 @@ Note that we can simplify to \eqref{eq:psksub} because the event $S$ is included
 in the event that one of the $k$ responders is a source. Note also that
 $P(S|H=k)>P(S)$ for $P(S)\in(0,1)$. When $k=1$ (which is our previous assumption
 that there is only one origin), $P(S|H=k)=1$ which agrees with our reasoning
-that $y$ knows definitively that $x$ has source $s$. Thus if more than one peer
+that $y$ knows definitively that $x$ has source $s$. However if more than one peer
 responds (either by multiple sources or by $x$ sharing knowledge), $y$ cannot be
 certain whether $x$ has a source.
 
@@ -191,19 +192,27 @@ Going back to our original worst-case assumptions, suppose that after $y$
 queries, another peer $z$ queries for information about $q$. Now we are in the
 previously discussed weaker case: {\it two} peers will respond with knowledge
 about $q$ ($x$ and $y$)! Thus $z$'s information about $s$ is only $P(S|H=2)<1$.
-In general---where $H$ is the number of peers in the network who have knowledge
-about $q$---if $H=k$ then the worst case is that the next peer who queries will
-gain the information $P(S|H=k)$ about one of the responding peers possessing
-$s$. The goal of a private attribution network is to provide some probability
-less than $P(S|H=k)$.
+
+\begin{theorem}
+	If $k$ peers in the network have knowledge of $q$, then
+	\begin{equation*}
+		P(S|\text{the peer responds to a query})\le P(S|H=k)
+	\end{equation*}
+\end{theorem}
+\begin{proof}
+	This follows from the definition in \eqnref{psk} and the previous arguments.
+\end{proof}
+
+The goal of a private attribution network is to make $P(S|\text{the peer
+responds to a query})$ smaller than $P(S|H=k)$.
 
 % TODO make this a this theorem to reference
 
 \subsection{Unreliable Peers}\label{sec:unreliable}
 
 One simple approach to improving the privacy of the network is for the peers to be
-unreliable i.e. let $P(\text{respond to a query about }q|\text{have source
-}s)=r<1$. Now when $y$ queries the entire network, they can no longer be sure
+unreliable i.e. let $P(\text{respond to a query about }q|\text{have knowledge of
+}q)=r<1$. Now when $y$ queries the entire network, they can no longer be sure
 that the peers who respond are all the peers who have the relevant knowledge.
 Thus we now have a new random variable $M\ne H$ which is the number of peers who
 respond to a query about $q$.
@@ -235,7 +244,7 @@ each trial has probability $r$ of success. Substituting into \eqnref{psmbig} giv
 	P(S|M=m)=\frac{\sum_{k=m}^{n-1}P(S|H=k)b(m,k,r)P(H=k)}{\sum_{k=m}^{n-1}b(m,k,r)P(H=k)}
 \end{equation}
 
-\begin{theorem}
+\begin{theorem}\label{th:rbound}
 	$P(S|M=m)\le P(S|H=m)$ and this inequality is strict if $r<1$.
 \end{theorem}
 \begin{proof}
@@ -256,12 +265,11 @@ each trial has probability $r$ of success. Substituting into \eqnref{psmbig} giv
 	\end{align*}
 \end{proof}
 
-
 % TODO performance impact
 
-\subsection{Extra Responses}
+\subsection{Extra Responses}\label{sec:exre}
 
-Since $P(S|H=k)$ approaches $P(S)$ as $k$ increases, another method of
+Since $P(S|H=k)$ decreases as $k$ increases, another method of
 preserving privacy would be for the peers responding to queries to force $k$ to
 be large. Specifically, whenever a peer responds to a query it also
 sends that response to each other peer with probability
@@ -287,24 +295,23 @@ query about $q$ from $y$, it knows that $x$ and $\gamma$ were also queried. Sinc
 queried peer always sends extra responses if it has the knowledge, $\beta$ knows that
 every peer who sends it an extra response knows about $q$. It received an extra
 response only from $x$ thus it can apply the same logic as $y$ (in
-\secref{risk}) to deduce that $x$ has $s$.
+\secref{baseline}) to deduce that $x$ has $s$.
 
 Clearly, $t=n-2$ is too large. But even smaller values of $t$ leak some privacy to the
 peers receiving extra responses. In fact, the situation generalizes to that of
 \secref{unreliable}: when a query about $q$ is received by a peer $\beta$,
-they expect to receive extra response from each peer that has knowledge of
+they expect to receive an extra response from each peer that has knowledge of
 $q$ with probability $t/(n-2)$. It is as if $\beta$ itself made the query and each
 peer responds probabilistically, which is exactly the situation with unreliable
 peers, only now $r=t/(n-2)$ and $M$ is the number of extra responses received by
 $\beta$.
 
 The point of sending out random extra responses would be defeated if
-${P(S|M=m)>P(S|H=m)}$ because then the extra responses a peer sends out
-would actually leak more private information than if it were simply queried
-directly. However we showed with \eqnref{psm} that $P(S|M=m)\le P(S|H=m)$ and in
-fact it is strict inequality if $r<1$ i.e. if $t<n-2$.
-
-Thus $t$ can be any value other than $n-2$, but what should it be? We first note
+$P(S|M=m)>P(S|H=m)$ because then the extra responses a peer sends out would
+actually leak more private information than if it were simply queried directly.
+However we showed with \thref{rbound} that $P(S|M=m)<P(S|H=m)$ if $r<1$ i.e. if
+$t<n-2$.
+To choose $t$, we first note
 a major difference from \secref{unreliable}: an attacker in this case
 has some control over $r$ and thus $M$. If we have a swarm of $n$ peers,
 an attacker can add $b$ malicious peers to the swarm. These malicious peers can
@@ -313,13 +320,13 @@ responses from. In effect, the $b$ peers behave like a single peer that has a
 higher chance of receiving extra responses.
 
 \begin{theorem}
-	If extra responses are sent with probability $\frac{t}{n-2}$, then an
-	attacker inserting malicious peers into the network can guarantee that they
-	will receive extra responses with probability at most $1-1/e^t$.
+	If extra responses are sent with probability $\frac{t}{n-2}$, then the
+	probability that an attacker inserting malicious peers into the network
+	receives an extra response is bounded by $1-1/e^t$.
 \end{theorem}
 \begin{proof}
 Let $B$ be the event that at least one of the $b$ malicious peers is sent an extra
-	response and let $n$ be the original number of nodes in the network. Then:
+	response and let $n$ be the original number of peers in the network. Then:
 \begin{align*}
 	P(B)&=1-P(\neg B)\\
 	&=1-\left(1-P(\text{a particular malicious peer gets an extra response})\right)^b\\
@@ -327,10 +334,12 @@ Let $B$ be the event that at least one of the $b$ malicious peers is sent an ext
 	\lim_{b\rightarrow\infty}P(B)&=1-\frac{1}{e^t}
 \end{align*}
 \end{proof}
-Even at $t=5$ this probability is very close to 1. So to defend against these
-attacks $t$ should be kept as small as possible.
+If we consider such an attack to be viable, we should make this bound as small as
+possible while still allowing for extra responses. Thus we choose $t=1$, which
+means the highest probability an attacker can achieve is only about
+$1-1/e\approx2/3$.
 
-% TODO figure out how good small t's are though
+% TODO show that t=1 is still pretty good
 
 Note that this leak also relies largely on the assumption that every peer
 queries every other peer in order to greedily determine as much private
@@ -340,6 +349,117 @@ group of malicious peers) is
 {\it not} sent an extra response it is possible that it will also {\it not} receive the
 corresponding query for $q$---in which case it will be completely oblivious to the
 entire exchange and no leak will occur.
+
+\section{Knowledge Distribution}
+
+The privacy provided by both techniques from \secref{prrsk} depends on $P(H)$:
+the prior probability distribution for the number of peers who possess knowledge
+about some query $q$. In this section we will see that $P(H)$ is formulated in
+much the same way as $P(S|M)$ from \secref{unreliable} and how the design of the
+P2P protocol is crucial to its calculation.
+
+Na\"ively, we could assume that at the time that we query for $q$, no other
+peers have made similar queries. In that situation, the peers who
+possess knowledge of $q$ would be exactly the set of origins: no queries have
+been made, so no knowledge has spread beyond the sources for $q$. Then
+\begin{equation*}
+	P(H=k|\text{no queries})=P(k\text{ sources}|\text{at least one
+	source})
+\end{equation*}
+since we need to assume sources exist in order to query for $q$. But this will
+most likely not be accurate since queries have probably occurred between other
+peers, thus changing the distribution of $H$.
+
+However, assuming that our peers greedily query every other peer in the swarm
+(in order to gain as much private knowledge as possible), we would know a priori
+how many queries have been made for $q$. Thus our prior should really be
+$P(H|Q)$ where $Q$ is the number of previously made queries for $q$. Even in the
+non-greedy case where peers query some subset of the network, we could use the
+number of observed queries to probabilistically calculate the prior.
+
+% TODO link to future work about prob prior?
+
+This prior can be formulated in much the same way as $P(S|M)$ from \eqnref{psm},
+except instead of considering possible values of $H$ for $M$, we consider possible
+values of $I$ for $Q$, where $I$ is the number of origins that were originally in the network:
+\begin{align*}
+	P(H=k|Q=u)&=\sum_{i=1}^kP(H=k|I=i\cap Q=u)P(I=i|Q=u)\\
+	&=\frac{\sum_{i=1}^kP(H=k|I=i\cap
+	Q=u)P(Q=u|I=i)P(I=i)}{\sum_{i=1}^{k}P(Q=u|I=i)P(I=i)}
+\end{align*}
+All the terms in this formula are known. $P(I=i)$, the prior probability of
+there being $i$ origins, is simply given by $P(S)$ and the binomial
+distribution: $P(I=i)=b(i,n-1,P(S))$. $P(H=k|I=i\cap Q=u)$, the probability of
+$k$ peers knowing about $q$ after $i$ origins are queried $u$ times, can
+be calculated based on the rate at which knowledge spreads through the network
+(see \secref{hgiveniq}). $P(Q=u|I=i)$, the probability that $u$ queries are made
+against $i$ origins, can also be calculated using the rate at which
+knowledge spreads though from a different perspective (see \secref{qgiveni}).
+
+\subsection{Conditional Knowledge Distribution}\label{sec:hgiveniq}
+
+We showed previously how the distribution of knowledge given a certain number of
+queries were made depends on the knowledge distribution also assuming the number
+of origins: $P(H|I\cap Q)$.
+
+The calculation of this distribution in effect measures how knowledge flows
+through the network given a particular querying protocol. For example, given
+the simple case where a peer simply responds to a query deterministically (as
+in \secref{baseline}), we know that
+\begin{equation*}
+	P(H=i+u|I=i\cap Q=u)=1
+\end{equation*}
+because $i$ peers know initially and each of the $u$ queries passes on the
+knowledge to one more peer.
+
+If we have unreliable peers as in \secref{unreliable}, where a peer has
+probability $r$ of responding to a query, we can easily calculate cases such as
+\begin{align*}
+	P(H=i|I=i\cap Q=1)&=(1-r)^i\\
+	P(H=i+1|I=i\cap Q=1)&=1-(1-r)^i
+\end{align*}
+however the general calculation is far more complex as $Q$ increases (due to
+multiple ways of achieving the same $H$). It takes the form
+\begin{equation*}
+	P(H=k|I=i\cap Q=u)=\sum_{\{F\}}\prod_{l=0}^{k-i-1}(1-r)^{(i+l)F_l}(1-(1-r)^{i+l})
+\end{equation*}
+where the sum is over all possible ways to have exactly $k-i$ successful queries
+out of $u$ queries and the $F_l$ represent the number of failures before the
+$l^\text{th}$ success. This could be efficiently calculated using dynamic
+programming, however in practice we found that simulations of the
+network to empirically calculate the probability converged reasonably quickly to
+an accurate result (and are much simpler to implement).
+
+% TODO diagram of different distributions
+
+Similarly for the case of extra responses from \secref{exre}, the general
+probability calculation is surprisingly complex; one must consider which peers
+were chosen to receive extra responses and how these peers overlap with each
+other and the queried peers. Once again we chose to empirically calculate the
+distribution via simulation.
+
+% TODO another diagram
+
+\subsection{Query Distribution}\label{sec:qgiveni}
+
+The second distribution which must be calculated is $P(Q|I)$, the probability of
+a certain number of queries occurring given a number of initial origins. Another
+way to think of this is: assuming every peer wants the knowledge eventually,
+how many queries will it take them to get it?
+
+Consider deterministic responses as in \secref{baseline}. If we were to observe
+the network over its lifetime, given $i$ origins we would see $n-i$ queries: one
+for each of the peers that does not have the knowledge. Furthermore, since
+queries are responded to deterministically, the order of queries is irrelevant:
+it is just as easy for the $1^\text{st}$ peer to query as it is for the
+$(n-i)^\text{th}$. Therefore,
+\[P(Q=u|I=i)=\frac{1}{n-i-1}\]
+where $u\in[1,n-i-1]$ because the prior is calculated by one of the peers in the
+network, so only $n-i-1$ other peers are considered.
+
+\section{Private Attribution Network}
+
+% TODO bring it all together!
 
 \section{Evaluation}
 
@@ -351,7 +471,7 @@ How well does it work?
 
 \bibitem{xray}
 	M. L\'ecuyer, G. Ducoffe, F. Lan, A. Papancea, T. Petsios, R. Spahn, A. Chaintreau, and R. Geambasu.
-	XRay: Enhancing the Web’s Transparency with Differential Correlation.
+	XRay: Enhancing the Web's Transparency with Differential Correlation.
 	\emph{USENIX Security}, 2014.
 
 \bibitem{privatep2p}
