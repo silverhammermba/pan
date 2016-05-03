@@ -22,13 +22,13 @@ def post_given_know ps, k
 end
 
 # return a bunch of simulations for a given setup
-$sims = {}
+$sims = {} # quick'n'dirty memoization
 def sims i, n, sx
   $sims[[i,n,sx]] ||= 10_000.times.map { simulate(i, n, sx) }
 end
 
 # get the worst-case posterior probs for a network
-$baseline = {}
+$baseline = {} # quick'n'dirty memoization
 def baseline n
   return $baseline[n] if $baseline[n]
 
@@ -52,7 +52,7 @@ def normalize! dist
 end
 
 # P(H|I=i&Q=u)
-$dkgo = {}
+$dkgo = {} # quick'n'dirty memoization
 def dist_know_given_org i, u, n, sx
   params = [i,u,n,sx]
   return $dkgo[params] if $dkgo[params]
@@ -107,7 +107,7 @@ def post_query_given_org u, i, n, sx
 end
 
 # P(H=k|Q=u)
-$pk = {}
+$pk = {} # quick'n'dirty memoization
 def prior_know k, u, ps, n, sx
   params = [k,u,ps,n,sx]
   return $pk[params] if $pk[params]
@@ -123,7 +123,7 @@ end
 #  ps: prior probability of a peer being an origin
 #   u: number of previously observed queries
 #  sx: the parameters (other than i and n) passed to the network simulation
-$pgr = {}
+$pgr = {} # quick'n'dirty memoization
 def post_given_resp n, m, r, ps, u, sx
   params = [n,m,r,ps,u,sx]
   return $pgr[params] if $pgr[params]
