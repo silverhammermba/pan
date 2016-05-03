@@ -15,34 +15,27 @@ def simulate i, n, t
 
   # every peer (other than origins) might get to do a direct query and/or get extra responses
   know = Array.new(n - i) { false }
-  data[:direct_res] = Array.new(n - i) { nil }
-  data[:extra_res] = Array.new(n - i) { Set.new }
+  data[:responses] = []
+
 
   k = i
+  j = 0
   while k < n
     # record current knowledge dist
     data[:kdist][data[:total_queries]] = k
     # gonna make a new query
     data[:total_queries] += 1
-    # pick a peer who (maybe?) knows the least
-    j = 0
-    min = 1.0/0
-    know.each_index do |l|
-      next if know[l]
-      if data[:extra_res][l].size < min
-        min = data[:extra_res][l].size
-        j = l
-        break if min == 0
-      end
-    end
+
+    z = know.each_index.find { |l| !know[l] }
+    data[:responses][j] = {extra: [], queries: data[:total_queries] - 1}
 
     # record responses
     extra = 0
     know.each_index do |l|
       # if this is the querying peer
-      if l == j
+      if l == z
         # they get a direct response
-        data[:direct_res][l] = k
+        data[:responses][j][:direct] = k
         know[l] = true
         next
       end
@@ -52,7 +45,8 @@ def simulate i, n, t
       # if we got respones
       if reses > 0
         # record it
-        data[:extra_res][l] << [reses, data[:total_queries]-1]
+        data[:responses][j][:extra] << reses
+
         # check if this spread knowledge
         if !know[l]
           know[l] = true
@@ -62,6 +56,7 @@ def simulate i, n, t
     end
 
     k += 1 + extra
+    j += 1
   end
   data[:kdist][data[:total_queries]] = n
 
@@ -71,25 +66,33 @@ end
 # TODO figure out why this is so close to worst case
 # extra response probs should ALWAYS be lower
 # probably has to do with the sorting?
-n = 30
+n = 10
 t = 1
-leaks = Hash.new 0.0
+leaks = []
 total = 1000
 sims(1, n, t)[0...total].each do |data|
-  x = data[:direct_res].each_index.map do |l|
-    prob = 0.0
-    if data[:direct_res][l]
-      prob = post_given_know(data[:prior_s], data[:direct_res][l])
-    end
-    data[:extra_res][l].each do |ex|
-      p = post_given_resp(n, ex[0], data[:prob_ex], data[:prior_s], ex[1], t)
-      prob = p if p > prob
-    end
-    prob
-  end.sort.reverse
-  x.each.with_index { |p, l| leaks[l + 1] += p }
+  data[:responses].each_with_index do |r, i|
+    probs = r[:extra].map do |ex|
+      post_given_resp(n, ex, data[:prob_ex], data[:prior_s], r[:queries], t)
+    end.sort.reverse
+    probs.unshift post_given_know(data[:prior_s], r[:direct])
+
+    leaks[i] ||= Hash.new(0.0)
+    probs.each_with_index { |pr, j| leaks[i][j] += pr }
+  end
 end
-leaks.each { |k, v| leaks[k] = v.to_f / total }
+leaks.each { |dist| dist.each { |k, v| dist[k] = v.to_f / total } }
+
+leaks.each_with_index do |dist, i|
+  puts "$datad#{i} << EOD"
+  (dist.keys.min..dist.keys.max).each do |k|
+    puts "#{i + 1} #{k} #{dist[k]}"
+  end
+  puts "EOD"
+end
+puts "set style data lines"
+puts "splot #{leaks.each_index.map { |i| "'$datad#{i}'" }.join(', ')}"
+exit
 
 base = baseline(n)
 
