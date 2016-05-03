@@ -98,7 +98,7 @@ end
 puts <<CMD
 unset key
 set style data lines
-splot $data, #{leaks.each_index.map { |i| "'$datad#{i}'" }.join(', ')}
+splot $data linetype rgb 'black', #{leaks.each_index.map { |i| "'$datad#{i}' linetype rgb '#{gradient([0, 0, 255], [18, 157, 0], 0, leaks.size - 1, i)}'" }.join(', ')}
 CMD
 exit
 
