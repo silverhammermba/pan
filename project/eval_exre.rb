@@ -83,6 +83,11 @@ sims(1, n, t)[0...total].each do |data|
 end
 leaks.each { |dist| dist.each { |k, v| dist[k] = v.to_f / total } }
 
+puts "$data << EOD"
+leaks.each_with_index do |d, i|
+  puts "#{i + 1} 0 #{d[0]}"
+end
+puts "EOD"
 leaks.each_with_index do |dist, i|
   puts "$datad#{i} << EOD"
   (dist.keys.min..dist.keys.max).each do |k|
@@ -90,8 +95,11 @@ leaks.each_with_index do |dist, i|
   end
   puts "EOD"
 end
-puts "set style data lines"
-puts "splot #{leaks.each_index.map { |i| "'$datad#{i}'" }.join(', ')}"
+puts <<CMD
+unset key
+set style data lines
+splot $data, #{leaks.each_index.map { |i| "'$datad#{i}'" }.join(', ')}
+CMD
 exit
 
 base = baseline(n)
