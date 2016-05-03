@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# evaluate the deterministic protocol
+# evaluate the unreliable peers protocol
 
 require './pan'
 
@@ -7,9 +7,6 @@ require './pan'
 #   i starting origins
 #   n peers
 #   r chance of peer responding
-#
-# record the state when each response was received, the total number of queries
-# performed, and the distribution of knowledge per query
 def simulate i, n, r
   ps = i.to_f / n
   data = {prior_s: ps, responses: [], total_queries: 0, kdist: []}
@@ -35,17 +32,13 @@ def simulate i, n, r
   data
 end
 
-#require 'pry'
-#binding.pry
-#exit
-
-n = 100
+n = 10
 r = 0.25
 total = 10
 leaks = Hash.new 0.0
 sims(1, n, r)[0...total].each do |data|
   data[:responses].each do |res|
-    post = post_given_resp(n, res[1], r, data[:prior_s], res[2])
+    post = post_given_resp(n, res[1], r, data[:prior_s], res[2], r)
     leaks[res[0]] += post
   end
 end
@@ -59,8 +52,6 @@ leaks.each do |j, post|
 end
 puts "EOD"
 puts <<OPTS
-unset key
-set logscale x
 set xlabel 'Query'
 set ylabel 'P(S|response)'
 plot $data using 1:2 with lines title 'Unreliable peers'

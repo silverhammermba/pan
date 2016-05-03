@@ -23,8 +23,8 @@ end
 
 # return a bunch of simulations for a given setup
 $sims = {}
-def sims i, n, r
-  $sims[[i,n,r]] ||= 10_000.times.map { simulate(i, n, r) }
+def sims i, n, sx
+  $sims[[i,n,sx]] ||= 10_000.times.map { simulate(i, n, sx) }
 end
 
 # get the worst-case posterior probs for a network
@@ -53,44 +53,44 @@ end
 
 # P(H|I=i&Q=u)
 $dkgo = {}
-def dist_know_given_org i, u, n, r
-  params = [i,u,n,r]
+def dist_know_given_org i, u, n, sx
+  params = [i,u,n,sx]
   return $dkgo[params] if $dkgo[params]
 
   dist = Hash.new 0
   # find all sims that had that many queries, count up how many people knew for each query
-  sims(i,n,r).select { |d| d[:total_queries] >= u }.each { |d| dist[d[:kdist][u]] += 1 }
+  sims(i,n,sx).select { |d| d[:total_queries] >= u }.each { |d| dist[d[:kdist][u]] += 1 }
 
   $dkgo[params] = normalize!(dist)
 end
 
 # P(H=k|I=i&Q=u)
-def post_know_given_org k, i, u, n, r
-  dist_know_given_org(i,u,n,r)[k].to_f
+def post_know_given_org k, i, u, n, sx
+  dist_know_given_org(i,u,n,sx)[k].to_f
 end
 
 # P(Omega|I=i)
 # XXX returns non-normalized distribution!
 $tqdgo = {} # quick'n'dirty memoization
-def total_query_dist_given_org i, n, r
-  params = [i, n, r]
+def total_query_dist_given_org i, n, sx
+  params = [i, n, sx]
   return $tqdgo[params] if $tqdgo[params]
 
   dist = Hash.new 0
 
-  sims(i,n,r).each { |data| dist[data[:total_queries]] += 1 }
+  sims(i,n,sx).each { |data| dist[data[:total_queries]] += 1 }
 
   $tqdgo[params] = dist
 end
 
 # P(Q|I=i)
 $pqdgo = {} # quick'n'dirty memoization
-def post_query_dist_given_org i, n, r
-  params = [i,n,r]
+def post_query_dist_given_org i, n, sx
+  params = [i,n,sx]
   return $pqdgo[params] if $pqdgo[params]
 
   dist = Hash.new 0.0
-  total_dist = total_query_dist_given_org i, n, r
+  total_dist = total_query_dist_given_org i, n, sx
 
   (total_dist.keys.min..total_dist.keys.max).each do |u|
     (0..u).each do |v|
@@ -102,20 +102,32 @@ def post_query_dist_given_org i, n, r
 end
 
 # P(Q=u|I=i)
-def post_query_given_org u, i, n, r
-  post_query_dist_given_org(i, n, r)[u]
+def post_query_given_org u, i, n, sx
+  post_query_dist_given_org(i, n, sx)[u]
 end
 
 # P(H=k|Q=u)
-def prior_know k, u, ps, n, r
-  num = (1..k).map { |i| post_know_given_org(k, i, u, n, r) * post_query_given_org(u, i, n, r) * binom(i, n - 1, ps) }.reduce(:+)
-  den = (1..k).map { |i| post_query_given_org(u, i, n, r) * binom(i, n - 1, ps) }.reduce(:+)
-  num / den
+$pk = {}
+def prior_know k, u, ps, n, sx
+  params = [k,u,ps,n,sx]
+  return $pk[params] if $pk[params]
+  num = (1..k).map { |i| post_know_given_org(k, i, u, n, sx) * post_query_given_org(u, i, n, sx) * binom(i, n - 1, ps) }.reduce(:+)
+  den = (1..k).map { |i| post_query_given_org(u, i, n, sx) * binom(i, n - 1, ps) }.reduce(:+)
+  $pk[params] = num / den
 end
 
 # P(S|M=m)
-def post_given_resp n, m, r, ps, u
-  num = (m..(n-1)).map { |k| post_given_know(ps, k) * binom(m, k, r) * prior_know(k, u, ps, n, r) }.reduce(:+)
-  den = (m..(n-1)).map { |k| binom(m, k, r) * prior_know(k, u, ps, n, r) }.reduce(:+)
-  num / den
+#   n: number of peers
+#   m: number of peers that responded to the query
+#   r: probability of a peer responding to the query
+#  ps: prior probability of a peer being an origin
+#   u: number of previously observed queries
+#  sx: the parameters (other than i and n) passed to the network simulation
+$pgr = {}
+def post_given_resp n, m, r, ps, u, sx
+  params = [n,m,r,ps,u,sx]
+  return $pgr[params] if $pgr[params]
+  num = (m..(n-1)).map { |k| post_given_know(ps, k) * binom(m, k, r) * prior_know(k, u, ps, n, sx) }.reduce(:+)
+  den = (m..(n-1)).map { |k| binom(m, k, r) * prior_know(k, u, ps, n, sx) }.reduce(:+)
+  $pgr[params] = num / den
 end
