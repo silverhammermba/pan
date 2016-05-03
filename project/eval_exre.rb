@@ -95,11 +95,14 @@ File.open('exre_dist.gp', 'w') do |f|
     f.puts "EOD"
   end
   f.puts <<-CMD
+terminal pdf
 unset key
 set xyplane 0.1
-set xlabel 'Query'
+set xlabel 'Peer'
 set ylabel 'Other Peers'
 set zlabel 'P(S|response)' rotate parallel
+set ytics offset -1
+set view 66,132
 set style data lines
 splot $data linetype rgb 'black', #{leaks.each_index.map { |i| "'$datad#{i}' linetype rgb '#{gradient([0, 0, 255], [18, 157, 0], 0, leaks.size - 1, i)}'" }.join(', ')}
   CMD
