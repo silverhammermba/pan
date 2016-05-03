@@ -11,6 +11,12 @@ class Integer
   end
 end
 
+# used for charts
+def gradient c1, c2, mn, mx, x
+  c = c1.zip(c2).map { |r1, r2| r1 * (mx - x) / (mx - mn) + r2 * (x - mn) / (mx - mn) }
+  "#%02X%02X%02X" % c
+end
+
 # prob s successes out of t trials with prob p of success
 def binom s, t, p
   t.choose(s) * p ** s * (t - s) ** (1 - p)
