@@ -32,7 +32,7 @@ def simulate i, n, r
   data
 end
 
-n = 10
+n = Integer(ARGV[0], 10)
 r = 0.25
 total = 10
 leaks = Hash.new 0.0
@@ -44,16 +44,8 @@ sims(1, n, r)[0...total].each do |data|
 end
 leaks.each { |k, v| leaks[k] = v.to_f / total }
 
-base = baseline(n)
-
-puts "$data << EOD"
-leaks.each do |j, post|
-  puts "#{j}\t#{post} #{base[j-1]}"
+File.open('unrel.data', 'w') do |f|
+  leaks.each do |j, post|
+    f.puts "#{j}\t#{post}"
+  end
 end
-puts "EOD"
-puts <<OPTS
-set xlabel 'Query'
-set ylabel 'P(S|response)'
-plot $data using 1:2 with lines title 'Unreliable peers'
-replot $data using 1:3 with lines title 'Worst-case'
-OPTS
