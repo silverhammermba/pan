@@ -1,5 +1,5 @@
 \documentclass{article}
-\usepackage{./nips15submit_e,amsmath,amsthm}
+\usepackage{./nips15submit_e,amsmath,amsthm,graphicx,subfig,flafter}
 %\usepackage{amsmath,amssymb,enumerate,mathtools}
 
 \newcommand{\eqnref}[1]{equation \eqref{eq:#1}}
@@ -7,6 +7,10 @@
 \newcommand{\secref}[1]{section \ref{sec:#1}}
 \newcommand{\Secref}[1]{Section \ref{sec:#1}}
 \newcommand{\thref}[1]{Theorem \ref{th:#1}}
+\newcommand{\figref}[1]{figure \ref{fig:#1}}
+\newcommand{\Figref}[1]{Figure \ref{fig:#1}}
+
+\newcommand{\tightframe}[1]{{\setlength{\fboxsep}{0pt}\setlength{\fboxrule}{1pt}\fbox{#1}}}
 
 \newtheorem{theorem}{Theorem}
 
@@ -206,8 +210,6 @@ about $q$ ($x$ and $y$)! Thus $z$'s information about $s$ is only $P(S|H=2)<1$.
 The goal of a private attribution network is to make $P(S|\text{the peer
 responds to a query})$ smaller than $P(S|H=k)$.
 
-% TODO make this a this theorem to reference
-
 \subsection{Unreliable Peers}\label{sec:unreliable}
 
 One simple approach to improving the privacy of the network is for the peers to be
@@ -265,7 +267,10 @@ each trial has probability $r$ of success. Substituting into \eqnref{psmbig} giv
 	\end{align*}
 \end{proof}
 
-% TODO performance impact
+One concern with such a change to the P2P protocol is the potential performance
+impact. Smaller $r$ will increase the overall number of queries which need to be
+made in order for the knowledge to spread, thus decreasing the overall speed of
+the network. This impact is measured empirically in \secref{qgiveni}.
 
 \subsection{Extra Responses}\label{sec:exre}
 
@@ -334,12 +339,12 @@ Let $B$ be the event that at least one of the $b$ malicious peers is sent an ext
 	\lim_{b\rightarrow\infty}P(B)&=1-\frac{1}{e^t}
 \end{align*}
 \end{proof}
-If we consider such an attack to be viable, we should make this bound as small as
-possible while still allowing for extra responses. Thus we choose $t=1$, which
-means the highest probability an attacker can achieve is only about
-$1-1/e\approx2/3$.
-
-% TODO show that t=1 is still pretty good
+Even for $t=5$ this probability is very close one, so we must choose a small $t$
+if we consider such an attack to be viable.  Our only concern with small $t$
+might be that it does not cause the knowledge to spread ``quickly enough'' to
+provide a privacy benefit. However we will see in \secref{qgiveni} that even for
+$t=1$ (which provides a limit of $1-1/e\approx2/3$), knowledge propagates very
+quickly through the network.
 
 Note that this leak also relies largely on the assumption that every peer
 queries every other peer in order to greedily determine as much private
@@ -350,7 +355,7 @@ group of malicious peers) is
 corresponding query for $q$---in which case it will be completely oblivious to the
 entire exchange and no leak will occur.
 
-\section{Knowledge Distribution}
+\section{Knowledge Distribution}\ref{sec:kdist}
 
 The privacy provided by both techniques from \secref{prrsk} depends on $P(H)$:
 the prior probability distribution for the number of peers who possess knowledge
@@ -382,12 +387,13 @@ number of observed queries to probabilistically calculate the prior.
 This prior can be formulated in much the same way as $P(S|M)$ from \eqnref{psm},
 except instead of considering possible values of $H$ for $M$, we consider possible
 values of $I$ for $Q$, where $I$ is the number of origins that were originally in the network:
-\begin{align*}
-	P(H=k|Q=u)&=\sum_{i=1}^kP(H=k|I=i\cap Q=u)P(I=i|Q=u)\\
+\begin{align}
+	P(H=k|Q=u)&=\sum_{i=1}^kP(H=k|I=i\cap Q=u)P(I=i|Q=u)\nonumber\\
 	&=\frac{\sum_{i=1}^kP(H=k|I=i\cap
-	Q=u)P(Q=u|I=i)P(I=i)}{\sum_{i=1}^{k}P(Q=u|I=i)P(I=i)}
-\end{align*}
-All the terms in this formula are known. $P(I=i)$, the prior probability of
+	Q=u)P(Q=u|I=i)P(I=i)}{\sum_{i=1}^{k}P(Q=u|I=i)P(I=i)}\label{eq:hgq}
+\end{align}
+All the terms in this formula can be calculated based on what we already know of
+the network. $P(I=i)$, the prior probability of
 there being $i$ origins, is simply given by $P(S)$ and the binomial
 distribution: $P(I=i)=b(i,n-1,P(S))$. $P(H=k|I=i\cap Q=u)$, the probability of
 $k$ peers knowing about $q$ after $i$ origins are queried $u$ times, can
@@ -428,9 +434,12 @@ out of $u$ queries and the $F_l$ represent the number of failures before the
 $l^\text{th}$ success. This could be efficiently calculated using dynamic
 programming, however in practice we found that simulations of the
 network to empirically calculate the probability converged reasonably quickly to
-an accurate result (and are much simpler to implement).
-
-% TODO diagram of different distributions
+an accurate result (and are much simpler to implement). However we observe that
+this calculation only appears in \eqnref{hgq} as a product with $P(Q=u|I=i)$. We
+will see in \secref{qgiveni} that $P(Q=u|I=i)$ will only be nonzero for a
+limited range of $i$. Thus in practice we need only calculate $P(H=k|I=i\cap
+Q=u)$ when this product has a chance of being nonzero. See \secref{pan} for the
+result.
 
 Similarly for the case of extra responses from \secref{exre}, the general
 probability calculation is surprisingly complex; one must consider which peers
@@ -438,34 +447,123 @@ were chosen to receive extra responses and how these peers overlap with each
 other and the queried peers. Once again we chose to empirically calculate the
 distribution via simulation.
 
-% TODO another diagram
-
 \subsection{Query Distribution}\label{sec:qgiveni}
 
 The second distribution which must be calculated is $P(Q|I)$, the probability of
-a certain number of queries occurring given a number of initial origins. Another
-way to think of this is: assuming every peer wants the knowledge eventually,
-how many queries will it take them to get it?
+observing a certain number of queries given a number of initial origins. We
+calculate this by taking into account $\Omega$, the number of total queries
+about $q$ that will be performed. Since we assume that every peer will
+eventually want to learn about $q$, this is equivalent to measuring how many
+queries it takes for every peer to have the knowledge.
+\begin{equation}\label{eq:pqi}
+	P(Q=u|I=i)=\sum_{v=0}^\infty P(Q=u\cap\Omega=v|I=i)
+\end{equation}
 
-Consider deterministic responses as in \secref{baseline}. If we were to observe
-the network over its lifetime, given $i$ origins we would see $n-i$ queries: one
-for each of the peers that does not have the knowledge. Furthermore, since
-queries are responded to deterministically, the order of queries is irrelevant:
-it is just as easy for the $1^\text{st}$ peer to query as it is for the
-$(n-i)^\text{th}$. Therefore,
-\[P(Q=u|I=i)=\frac{1}{n-i-1}\]
-where $u\in[1,n-i-1]$ because the prior is calculated by one of the peers in the
-network, so only $n-i-1$ other peers are considered.
+Consider deterministic responses as in \secref{baseline}. If a peer were to
+observe the network over its lifetime, given $i$ origins it would see $n-i-1$
+queries: one for each of the peers that does not have the knowledge (not
+counting itself). For this protocol, \eqnref{pqi} simplifies to
+\begin{equation}\label{eq:pqisimple}
+	P(Q=u|I=i)=P(Q=u\cap\Omega=n-i-1|I=i)=\frac{1}{n-i-1}
+\end{equation}
+for $u\in[1,n-i-1]$. The first equality follows from the fact that there must be
+$n-i-1$ queries. The second follows because a priori we can only assume that
+each of the $n-i-1$ peers is indistinguishable with respect to wanting knowledge
+about $q$, thus each query must be equally likely.
 
-\section{Private Attribution Network}
+As in the previous section, the calculations are more elaborate as we change the
+protocol. For unreliable peers, $P(\Omega|I)$ is similar to a negative binomial
+distribution (the number of trials needed to get a certain number of successes
+in a Bernoulli process) however it is more complicated because the probability
+of a query succeeding increases as more queries succeed. Once again we found it
+more practical to simply empirically calculate $P(\Omega|I)$ via network
+simulation and then use the same assumption of equally likely queries from
+\eqnref{pqisimple} to get $P(Q|I)$.
 
-% TODO bring it all together!
+\begin{figure}%
+    \centering
+	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{qdist3d.pdf}}}%
+	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{qdist3d_final.pdf}}}%
+	\caption{Calculating $P(Q|I)$ with unreliable peers ($r=0.25$) via network
+	simulation ($n=100$). Each line in (a) shows the distribution
+	$P(\Omega|I=i)$ for different $i$, while lines in (b) show $P(Q|I=i)$.}
+    \label{fig:unreliable}%
+\end{figure}
 
-\section{Evaluation}
+\Figref{unreliable} shows the result of
+calculating $P(\Omega|I)$ and $P(Q|I)$ in this manner for a fixed chance $r$ of
+a peer responding. Note that as the number of origins increases, the probability
+of a query succeeding approaches 1, thus $P(\Omega=n-i|I=i)\rightarrow 1$,
+consequently $P(Q|I)$ approaches a uniform distribution (since this is similar
+to the deterministic case of \eqnref{pqisimple}). A convenient byproduct of this
+calculation is that we also see the performance impact of the protocol.
+Because $P(\Omega|I)$ is also a sort of measure of how long it takes every peer
+to learn the knowledge, it is a decent measure of the worst-case performance of
+the network. We can see that for a small number of origins, while the smaller
+values of $Q$ have the highest probabilities, $P(Q|I)$ has a very long tail,
+indicating that in some cases we might require significantly more queries
+overall before the knowledge spreads.
+
+\begin{figure}%
+    \centering
+	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{qdist3d_er.pdf}}}%
+	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{qdist3d_er_final.pdf}}}%
+	\caption{Calculating $P(Q|I)$ with extra responses ($t=1$) via network
+	simulation ($n=100$). The format is the same as \figref{unreliable}.}
+    \label{fig:exre}%
+\end{figure}
+
+We can use the same technique with a different simulation to find $P(Q|I)$ for
+the case of extra responses. \Figref{exre} shows this result for a fixed $t$.
+This converges to a uniform distribution more slowly than unreliable peers does,
+but note that the scale for $Q$ is much smaller: even for 1 origin, it is
+unlikely to take more than 14 queries for the knowledge to spread completely.
+This is because each successful query only slightly increases the chance of each
+extra response being sent, but overall the number of extra responses causes the
+knowledge to spread throughout the network at an exponential rate. This
+alleviates our concern of using small $t$ that we had from \secref{exre}.
+
+\begin{figure}%
+    \centering
+	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{qdist3d_uer.pdf}}}%
+	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{qdist3d_uer_final.pdf}}}%
+	\caption{Calculating $P(Q|I)$ with unreliable peers and extra responses
+	($r=0.25$, $t=1$) via network simulation ($n=100$). The format is the same
+	as \figref{unreliable}.}
+    \label{fig:uexre}%
+\end{figure}
+
+Because these calculations are done empirically, it is trivial to extend this to
+the combination of the two techniques: unreliable peers where each peer sends
+extra responses. The result is shown in \figref{uexre}. As we might expect, the
+resulting distribution exhibits a mix of those from figures \ref{fig:unreliable}
+and \ref{fig:exre}: slow convergence to a uniform distribution with a moderately
+long tail.
+
+% TODO does this mix turn out to be good?
+
+\section{Evaluation}\label{sec:pan}
 
 How well does it work?
 
+With the calculations developed in the previous sections, we can finally
+implement a private attribution network using the protocol changes from sections
+\ref{sec:unreliable} and \ref{sec:exre} and measure the resulting private
+knowledge leakage. We must do so empirically because of the empirical
+calculations in \secref{kdist}.
+
+We chose to evaluate the worst case scenario (similar to \secref{baseline}): a
+single query $q$ with a single source $s$ possessed by a single peer $x$. Then
+for multiple iterations we simulated knowledge of $q$ spreading through the
+network query-by-query, recording after each query the private information leak
+in terms of $P(S|\text{$x$ responds to a query})$. We consider not just
+the maximum leakage, but the distribution of that leakage in the network i.e.
+the difference between one peer knowing a lot about you and many peers knowing a
+little about you.
+
 \section{Discussion \& Conclusion}
+
+\subsection{Future Work}
 
 \begin{thebibliography}{9}
 
