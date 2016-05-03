@@ -63,10 +63,7 @@ def simulate i, n, t
   data
 end
 
-# TODO figure out why this is so close to worst case
-# extra response probs should ALWAYS be lower
-# probably has to do with the sorting?
-n = 10
+n = Integer(ARGV[0], 10)
 t = 1
 leaks = []
 total = 1000
@@ -83,35 +80,34 @@ sims(1, n, t)[0...total].each do |data|
 end
 leaks.each { |dist| dist.each { |k, v| dist[k] = v.to_f / total } }
 
-puts "$data << EOD"
-leaks.each_with_index do |d, i|
-  puts "#{i + 1} 0 #{d[0]}"
-end
-puts "EOD"
-leaks.each_with_index do |dist, i|
-  puts "$datad#{i} << EOD"
-  (dist.keys.min..dist.keys.max).each do |k|
-    puts "#{i + 1} #{k} #{dist[k]}"
+# create a 3D plot of extra response distribution for each query
+File.open('exre_dist.gp', 'w') do |f|
+  f.puts "$data << EOD"
+  leaks.each_with_index do |d, i|
+    f.puts "#{i + 1}\t0\t#{d[0]}"
   end
-  puts "EOD"
-end
-puts <<CMD
+  f.puts "EOD"
+  leaks.each_with_index do |dist, i|
+    f.puts "$datad#{i} << EOD"
+    (dist.keys.min..dist.keys.max).each do |k|
+      f.puts "#{i + 1}\t#{k}\t#{dist[k]}"
+    end
+    f.puts "EOD"
+  end
+  f.puts <<-CMD
 unset key
+set xyplane 0.1
+set xlabel 'Query'
+set ylabel 'Other Peers'
+set zlabel 'P(S|response)' rotate parallel
 set style data lines
 splot $data linetype rgb 'black', #{leaks.each_index.map { |i| "'$datad#{i}' linetype rgb '#{gradient([0, 0, 255], [18, 157, 0], 0, leaks.size - 1, i)}'" }.join(', ')}
-CMD
-exit
-
-base = baseline(n)
-
-puts "$data << EOD"
-(1...n).each do |j|
-  puts "#{j}\t#{leaks[j] || ??}\t#{base[j-1]}"
+  CMD
 end
-puts "EOD"
-puts <<OPTS
-set xlabel 'Query'
-set ylabel 'P(S|response)'
-plot $data using 1:2 with lines title 'Extra responses'
-replot $data using 1:3 with lines title 'Worst-case'
-OPTS
+
+# create a data file of just direct response distribution
+File.open('exre.data', 'w') do |f|
+  leaks.each_with_index do |d, j|
+    f.puts "#{j+1}\t#{d[0]}"
+  end
+end
