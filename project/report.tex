@@ -355,7 +355,7 @@ group of malicious peers) is
 corresponding query for $q$---in which case it will be completely oblivious to the
 entire exchange and no leak will occur.
 
-\section{Knowledge Distribution}\ref{sec:kdist}
+\section{Knowledge Distribution}\label{sec:kdist}
 
 The privacy provided by both techniques from \secref{prrsk} depends on $P(H)$:
 the prior probability distribution for the number of peers who possess knowledge
@@ -533,7 +533,7 @@ alleviates our concern of using small $t$ that we had from \secref{exre}.
     \label{fig:uexre}%
 \end{figure}
 
-Because these calculations are done empirically, it is trivial to extend this to
+Because these calculations are done empirically, it is straightforward to extend this to
 the combination of the two techniques: unreliable peers where each peer sends
 extra responses. The result is shown in \figref{uexre}. As we might expect, the
 resulting distribution exhibits a mix of those from figures \ref{fig:unreliable}
@@ -552,14 +552,44 @@ implement a private attribution network using the protocol changes from sections
 knowledge leakage. We must do so empirically because of the empirical
 calculations in \secref{kdist}.
 
+\begin{figure}%
+    \centering
+	\includegraphics[width=0.75\textwidth]{comp.pdf}
+	\caption{Comparison of different network protocols in terms of private
+	information leakage. Each peer is numbered in the order that it first
+	acquires knowledge via successfully querying for $q$. A point on a line
+	represents the private information gained by a particular peer at the time
+	it queries (in terms of the posterior probability on $S$). Note the
+	logarithmic scale on the $X$ axis. The parameters used were $n=100$,
+	$r=0.25$, $t=1$.}
+    \label{fig:comp}%
+\end{figure}
+
 We chose to evaluate the worst case scenario (similar to \secref{baseline}): a
 single query $q$ with a single source $s$ possessed by a single peer $x$. Then
 for multiple iterations we simulated knowledge of $q$ spreading through the
 network query-by-query, recording after each query the private information leak
-in terms of $P(S|\text{$x$ responds to a query})$. We consider not just
-the maximum leakage, but the distribution of that leakage in the network i.e.
-the difference between one peer knowing a lot about you and many peers knowing a
-little about you.
+in terms of $P(S|\text{$x$ responds to a query})$. However since some of the protocols
+depend on random behavior, the leakage can depend on the specific
+random choices made by different peers in the network (e.g. whether a peer
+chooses to respond, how many peers it chooses to send extra responses to). Thus
+we run several thousand network simulations and average out the leakage per
+query. \Figref{comp} shows the results of these simulations for four different
+protocols.
+
+The ``Worst case'' line is the leakage in the simple deterministic case from
+\secref{baseline} where each peer with the relevant knowledge responds to the
+query. Here the leakage is simply given by $P(S|H=k)$ e.g. the first peer to
+query for the knowledge has $P(S|\text{response})=1$, the next peer has
+$P(S|\text{response})\approx 0.5$, etc.
+
+The ``Unreliable peers'' line represents the leakage with unreliable peers as in
+\secref{unreliable}. The information leakage in this case is significantly lower
+in the 
+
+We observe that the three other
+protocols provide lower information leakage according to this chart (as we would
+hope!) which indicates that they are all viable attribution privacy methods.
 
 \section{Discussion \& Conclusion}
 
