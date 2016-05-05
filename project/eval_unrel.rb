@@ -33,7 +33,8 @@ def simulate i, n, r
 end
 
 n = Integer(ARGV[0], 10)
-r = 0.25
+rd = Integer(ARGV[1], 10)
+r = r.to_f / 100
 total = 10
 leaks = Hash.new 0.0
 sims(1, n, r)[0...total].each do |data|
@@ -44,7 +45,7 @@ sims(1, n, r)[0...total].each do |data|
 end
 leaks.each { |k, v| leaks[k] = v.to_f / total }
 
-File.open('unrel.data', 'w') do |f|
+File.open("unrel_#{rd}.data", 'w') do |f|
   leaks.each do |j, post|
     f.puts "#{j}\t#{post}"
   end
