@@ -92,11 +92,11 @@ def simulate i, n, tr
 end
 
 n = Integer(ARGV[0], 10)
-t = 1
-r = 0.25
+t = Integer(ARGV[1], 10)
+rd = Integer(ARGV[2], 10)
+r = rd.to_f / 100
 leaks = []
-total = 1000
-sims(1, n, [t, r])[0...total].each do |data|
+sims(1, n, [t, r]).each do |data|
   data[:responses].each_with_index do |res, i|
     probs = res[:extra].map do |ex|
       post_given_resp(n, ex, data[:prob_ex], data[:prior_s], res[:queries], [t, r])
@@ -107,10 +107,11 @@ sims(1, n, [t, r])[0...total].each do |data|
     probs.each_with_index { |pr, j| leaks[i][j] += pr }
   end
 end
+total = sims(1,n,[t,r]).size.to_f
 leaks.each { |dist| dist.each { |k, v| dist[k] = v.to_f / total } }
 
 # create a 3D plot of extra response distribution for each query
-File.open('unexre_dist.gp', 'w') do |f|
+File.open("unexre_dist_#{n}_#{t}_#{rd}.gp", 'w') do |f|
   f.puts "$data << EOD"
   leaks.each_with_index do |d, i|
     f.puts "#{i + 1}\t0\t#{d[0]}"
@@ -138,7 +139,7 @@ splot $data linetype rgb 'black', #{leaks.each_index.map { |i| "'$datad#{i}' lin
 end
 
 # create a data file of just direct response distribution
-File.open('unexre.data', 'w') do |f|
+File.open("unexre_#{n}_#{t}_#{rd}.data", 'w') do |f|
   leaks.each_with_index do |d, j|
     f.puts "#{j+1}\t#{d[0]}"
   end

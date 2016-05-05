@@ -6,7 +6,7 @@ require './pan'
 n = Integer(ARGV[0], 10)
 base = baseline n
 
-File.open('base.data', 'w') do |f|
+File.open("base_#{n}.data", 'w') do |f|
   base.each_with_index do |pr, i|
     f.puts "#{i + 1}\t#{pr}"
   end

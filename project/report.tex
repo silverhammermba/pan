@@ -1,6 +1,5 @@
 \documentclass{article}
 \usepackage{./nips15submit_e,amsmath,amsthm,graphicx,subfig,flafter}
-%\usepackage{amsmath,amssymb,enumerate,mathtools}
 
 \newcommand{\eqnref}[1]{equation \eqref{eq:#1}}
 \newcommand{\Eqnref}[1]{Equation \eqref{eq:#1}}
@@ -590,6 +589,15 @@ in the
 We observe that the three other
 protocols provide lower information leakage according to this chart (as we would
 hope!) which indicates that they are all viable attribution privacy methods.
+
+% TODO need to average unrel over more samples in order to get better convergence
+
+\begin{figure}%
+    \centering
+	\includegraphics[width=0.75\textwidth]{comp_unrel.pdf}
+	\caption{Comparison of the Unreliable Peers protocol with varying $r$.}
+    \label{fig:comp_unrel}%
+\end{figure}
 
 \section{Discussion \& Conclusion}
 

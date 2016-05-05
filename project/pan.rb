@@ -30,14 +30,14 @@ end
 # return a bunch of simulations for a given setup
 $sims = {} # quick'n'dirty memoization
 def sims i, n, sx
-  $sims[[i,n,sx]] ||= 10_000.times.map { simulate(i, n, sx) }
+  params = [i,n,sx]
+  return $sims[params] if $sims[params]
+
+  $sims[params] = 10_000.times.map { |j| simulate(i, n, sx) }
 end
 
 # get the worst-case posterior probs for a network
-$baseline = {} # quick'n'dirty memoization
 def baseline n
-  return $baseline[n] if $baseline[n]
-
   ps = 1.0 / n
 
   leaks = []
@@ -46,7 +46,7 @@ def baseline n
     leaks[k-1] = post
   end
 
-  $baseline[n] = leaks
+  leaks
 end
 
 # normalize a probability distribution in place so it sums to 1
@@ -77,16 +77,12 @@ end
 
 # P(Omega|I=i)
 # XXX returns non-normalized distribution!
-$tqdgo = {} # quick'n'dirty memoization
 def total_query_dist_given_org i, n, sx
-  params = [i, n, sx]
-  return $tqdgo[params] if $tqdgo[params]
-
   dist = Hash.new 0
 
   sims(i,n,sx).each { |data| dist[data[:total_queries]] += 1 }
 
-  $tqdgo[params] = dist
+  dist
 end
 
 # P(Q|I=i)
@@ -117,6 +113,7 @@ $pk = {} # quick'n'dirty memoization
 def prior_know k, u, ps, n, sx
   params = [k,u,ps,n,sx]
   return $pk[params] if $pk[params]
+
   num = (1..k).map { |i| post_know_given_org(k, i, u, n, sx) * post_query_given_org(u, i, n, sx) * binom(i, n - 1, ps) }.reduce(:+)
   den = (1..k).map { |i| post_query_given_org(u, i, n, sx) * binom(i, n - 1, ps) }.reduce(:+)
   $pk[params] = num / den
@@ -133,6 +130,7 @@ $pgr = {} # quick'n'dirty memoization
 def post_given_resp n, m, r, ps, u, sx
   params = [n,m,r,ps,u,sx]
   return $pgr[params] if $pgr[params]
+
   num = (m..(n-1)).map { |k| post_given_know(ps, k) * binom(m, k, r) * prior_know(k, u, ps, n, sx) }.reduce(:+)
   den = (m..(n-1)).map { |k| binom(m, k, r) * prior_know(k, u, ps, n, sx) }.reduce(:+)
   $pgr[params] = num / den

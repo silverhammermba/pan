@@ -34,18 +34,18 @@ end
 
 n = Integer(ARGV[0], 10)
 rd = Integer(ARGV[1], 10)
-r = r.to_f / 100
-total = 10
+r = rd.to_f / 100
 leaks = Hash.new 0.0
-sims(1, n, r)[0...total].each do |data|
+sims(1, n, r).each do |data|
   data[:responses].each do |res|
     post = post_given_resp(n, res[1], r, data[:prior_s], res[2], r)
     leaks[res[0]] += post
   end
 end
-leaks.each { |k, v| leaks[k] = v.to_f / total }
+total = sims(1,n,r).size.to_f
+leaks.each { |k, v| leaks[k] = v / total }
 
-File.open("unrel_#{rd}.data", 'w') do |f|
+File.open("unrel_#{n}_#{rd}.data", 'w') do |f|
   leaks.each do |j, post|
     f.puts "#{j}\t#{post}"
   end
