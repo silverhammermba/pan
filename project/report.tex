@@ -483,15 +483,15 @@ simulation and then use the same assumption of equally likely queries from
 
 \begin{figure}%
     \centering
-	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{chart_omega_unrel_10_50.pdf}}}%
-	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_qdist_unrel_10_50.pdf}}}%
-	\caption{Calculating $P(Q|I)$ with unreliable peers ($r=0.50$) via network
+	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{chart_omega_unrel_10_99.pdf}}}%
+	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_qdist_unrel_10_99.pdf}}}%
+	\caption{Calculating $P(Q|I)$ with unreliable peers ($r=0.99$) via network
 	simulation ($n=10$). Each line in (a) shows the distribution
 	$P(\Omega|I=i)$ for different $i$, while lines in (b) show $P(Q|I=i)$.}
-    \label{fig:unreliable}%
+    \label{fig:unrelqueries}%
 \end{figure}
 
-\Figref{unreliable} shows the result of
+\Figref{unrelqueries} shows the result of
 calculating $P(\Omega|I)$ and $P(Q|I)$ in this manner for a fixed chance $r$ of
 a peer responding. Note that as the number of origins increases, the probability
 of a query succeeding approaches 1, thus $P(\Omega=n-i|I=i)\rightarrow 1$,
@@ -510,12 +510,12 @@ overall before the knowledge spreads.
 	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{chart_omega_exre_10_1.pdf}}}%
 	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_qdist_exre_10_1.pdf}}}%
 	\caption{Calculating $P(Q|I)$ with extra responses ($t=1$) via network
-	simulation ($n=10$). The format is the same as \figref{unreliable}.}
-    \label{fig:exre}%
+	simulation ($n=10$). The format is the same as \figref{unrelqueries}.}
+    \label{fig:exrequeries}%
 \end{figure}
 
 We can use the same technique with a different simulation to find $P(Q|I)$ for
-the case of extra responses. \Figref{exre} shows this result for a fixed $t$.
+the case of extra responses. \Figref{exrequeries} shows this result for a fixed $t$.
 This converges to a uniform distribution more slowly than unreliable peers does,
 but note that the scale for $Q$ is much smaller: even for 1 origin, it is
 unlikely to take more than 14 queries for the knowledge to spread completely.
@@ -526,19 +526,20 @@ alleviates our concern of using small $t$ that we had from \secref{exre}.
 
 \begin{figure}%
     \centering
-	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{chart_omega_unexre_10_1_50.pdf}}}%
-	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_qdist_unexre_10_1_50.pdf}}}%
+	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{chart_omega_unexre_10_1_99.pdf}}}%
+	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_qdist_unexre_10_1_99.pdf}}}%
 	\caption{Calculating $P(Q|I)$ with unreliable peers and extra responses
-	($r=0.50$, $t=1$) via network simulation ($n=10$). The format is the same
-	as \figref{unreliable}.}
-    \label{fig:uexre}%
+	($r=0.99$, $t=1$) via network simulation ($n=10$). The format is the same
+	as \figref{unrelqueries}.}
+    \label{fig:unexrequeries}%
 \end{figure}
 
 Because these calculations are done empirically, it is straightforward to extend this to
 the combination of the two techniques: unreliable peers where each peer sends
-extra responses. The result is shown in \figref{uexre}. As we might expect, the
-resulting distribution exhibits a mix of those from figures \ref{fig:unreliable}
-and \ref{fig:exre}: slow convergence to a uniform distribution with a moderately
+extra responses. The result is shown in \figref{unexrequeries}. As we might expect, the
+resulting distribution exhibits a mix of those from figures
+\ref{fig:unrelqueries}
+and \ref{fig:exrequeries}: slow convergence to a uniform distribution with a moderately
 long tail.
 
 % TODO does this mix turn out to be good?
@@ -555,6 +556,35 @@ calculations in \secref{kdist}.
 
 \begin{figure}%
     \centering
+	\includegraphics[width=0.75\textwidth]{chart_comp_unrel.pdf}
+	\caption{Comparison of the Unreliable Peers protocol with varying $r$
+	($n=10$). Each line represents the private leakage as a function of when
+	the attacker queries. E.g. the first point represents the leakage if an
+	attacker is the first peer to make a query, the second point is if they are
+	the second peer, etc. The leakage is averaged over thousands of network
+	simulations, so it is possible for the actual leakage to be higher or lower in a
+	specific situation. Note the logarithmic scale on the $X$ axis.}
+    \label{fig:compunrel}%
+\end{figure}
+
+We chose to evaluate the worst case scenario (similar to \secref{baseline}): a
+single query $q$ with a single source $s$ possessed by a single peer $x$. Then
+for multiple iterations we simulated knowledge of $q$ spreading through the
+network query-by-query, recording after each query the private information leak
+in terms of $P(S|\text{$x$ responds to a query})$.
+
+Our first question was about the effect of differing $r$ on the unreliable peers
+protocol. The results of these measurements are shown in \figref{compunrel}.
+The ``Worst case'' line is the leakage in the simple deterministic case from
+\secref{baseline} where the leakage is simply given by $P(S|H=k)$. Note that
+this is equivalent to the unreliable peers protocol with $r=1$. Thus
+\figref{compunrel} indicates that even slightly decreasing $r$ results in
+a dramatic privacy benefit. Afterwards changes in $r$ are less dramatic. For
+this reason we chose $r=0.99$ for all other cases where unreliable peers were
+used.
+
+\begin{figure}%
+    \centering
 	\includegraphics[width=0.75\textwidth]{chart_comp.pdf}
 	\caption{Comparison of different network protocols in terms of private
 	information leakage. Each peer is numbered in the order that it first
@@ -562,53 +592,30 @@ calculations in \secref{kdist}.
 	represents the private information gained by a particular peer at the time
 	it queries (in terms of the posterior probability on $S$). Note the
 	logarithmic scale on the $X$ axis. The parameters used were $n=10$,
-	$r=0.50$, $t=1$.}
+	$r=0.5$, $t=1$.}
     \label{fig:comp}%
 \end{figure}
 
-We chose to evaluate the worst case scenario (similar to \secref{baseline}): a
-single query $q$ with a single source $s$ possessed by a single peer $x$. Then
-for multiple iterations we simulated knowledge of $q$ spreading through the
-network query-by-query, recording after each query the private information leak
-in terms of $P(S|\text{$x$ responds to a query})$. However since some of the protocols
-depend on random behavior, the leakage can depend on the specific
-random choices made by different peers in the network (e.g. whether a peer
-chooses to respond, how many peers it chooses to send extra responses to). Thus
-we run several thousand network simulations and average out the leakage per
-query. \Figref{comp} shows the results of these simulations for four different
-protocols.
+Next we compared the effect of the different protocols, shown in \figref{comp}.
+As expected, extra responses provides no privacy benefit if the attacker is the
+first peer to query, since the intention is to provide higher privacy to {\it
+later} queries. Indeed the leakage decreases more quickly for extra
+resposes than it does for unreliable peers, exceeding it by the third or fourth
+query. Note also that the extra responses line stops short of the end of the
+chart: it takes far fewer queries to fully spread the knowledge, so no
+simulations ever reached beyond 10 or so attackers.
 
-The ``Worst case'' line is the leakage in the simple deterministic case from
-\secref{baseline} where each peer with the relevant knowledge responds to the
-query. Here the leakage is simply given by $P(S|H=k)$ e.g. the first peer to
-query for the knowledge has $P(S|\text{response})=1$, the next peer has
-$P(S|\text{response})\approx 0.5$, etc.
-
-The ``Unreliable peers'' line represents the leakage with unreliable peers as in
-\secref{unreliable}. The information leakage in this case is significantly lower
-in the 
-
-We observe that the three other
-protocols provide lower information leakage according to this chart (as we would
-hope!) which indicates that they are all viable attribution privacy methods.
+``Both'' shows the effect of combining both unreliable peers and extra
+responses. Surprisingly, this did not perform in between the two other protocols
+as expected, but apparently improves on both of them!
 
 % TODO need to average unrel over more samples in order to get better convergence
-
-\begin{figure}%
-    \centering
-	\includegraphics[width=0.75\textwidth]{chart_comp_unrel.pdf}
-	\caption{Comparison of the Unreliable Peers protocol with varying $r$.}
-    \label{fig:comp_unrel}%
-\end{figure}
-
 \begin{figure}%
     \centering
 	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{chart_exre_dist_10_1.pdf}}}%
 	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_unexre_dist_10_1_50.pdf}}}%
-	\caption{Calculating $P(Q|I)$ with unreliable peers ($r=0.50$) via network
-	simulation ($n=10$). Each line in (a) shows the distribution
-	$P(\Omega|I=i)$ for different $i$, while lines in (b) show $P(Q|I=i)$.}
-    \label{fig:unreliable}%
+	\caption{TODO}
+    \label{fig:exdist}%
 \end{figure}
 
 \section{Discussion \& Conclusion}

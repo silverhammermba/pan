@@ -195,7 +195,7 @@ File.open("unexre_dist_#{suff}.gp", 'w') do |f|
 set terminal pdf
 unset key
 set xyplane 0.1
-set xlabel 'Peer'
+set xlabel 'Attacker'
 set ylabel 'Other Peers'
 set zlabel 'P(S|response)' rotate parallel
 set ytics offset -1
