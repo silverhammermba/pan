@@ -51,8 +51,8 @@ end
 
 # normalize a probability distribution in place so it sums to 1
 def normalize! dist
-  total = dist.values.reduce(:+)
-  dist.each { |k, v| dist[k] = v.to_f / total }
+  total = dist.values.reduce(:+).to_f
+  dist.each { |k, v| dist[k] = v / total }
   dist.default = 0.0
   dist
 end
@@ -77,12 +77,16 @@ end
 
 # P(Omega|I=i)
 # XXX returns non-normalized distribution!
+$tqdgo = {} # quick'n'dirty memoization
 def total_query_dist_given_org i, n, sx
+  params = [i,n,sx]
+  return $tqdgo[params] if $tqdgo[params]
+
   dist = Hash.new 0
 
   sims(i,n,sx).each { |data| dist[data[:total_queries]] += 1 }
 
-  dist
+  $tqdgo[params] = dist
 end
 
 # P(Q|I=i)

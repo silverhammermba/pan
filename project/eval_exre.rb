@@ -65,6 +65,8 @@ end
 
 n = Integer(ARGV[0], 10)
 t = Integer(ARGV[1], 10)
+suff = "#{n}_#{t}"
+
 leaks = []
 sims(1, n, t).each do |data|
   data[:responses].each_with_index do |r, i|
@@ -80,8 +82,72 @@ end
 total = sims(1,n,t).size.to_f
 leaks.each { |dist| dist.each { |k, v| dist[k] = v / total } }
 
+is = (1..[20, n - 1].min)
+qmin = 1.0/0
+qmax = -1.0/0
+is.each do |i|
+  dist = total_query_dist_given_org(i, n, t)
+  qn = dist.keys.min
+  qx = dist.keys.max
+  if qn < qmin
+    qmin = qn
+  end
+  if qx > qmax
+    qmax = qx
+  end
+end
+
+File.open("omega_exre_#{suff}.gp", 'w') do |f|
+  is.each do |i|
+    f.puts "$data#{i} <<EOD"
+    dist = total_query_dist_given_org(i, n, t)
+    total = dist.values.reduce(:+).to_f
+    (qmin..qmax).each do |q|
+      f.puts "#{i}\t#{q}\t#{dist[q] / total}"
+    end
+    f.puts "EOD"
+  end
+  f.puts <<EOD
+unset key
+set terminal pdf
+set view 74,222
+set xrange [#{is.begin}:#{is.end}]
+set yrange [#{qmin}:#{qmax}]
+set xlabel 'I'
+set ylabel 'Ω'
+set zlabel 'P(Ω|I)'
+set xyplane 0.1
+set style data lines
+EOD
+  f.puts "splot #{is.map { |i| "'$data#{i}' linetype rgb '#{gradient([0, 0, 255], [255, 0, 0], is.begin, is.end, i)}'" }.join(', ')}"
+end
+
+File.open("qdist_exre_#{suff}.gp", 'w') do |f|
+  is.each do |i|
+    f.puts "$data#{i} <<EOD"
+    dist = post_query_dist_given_org(i, n, t)
+    (1..qmax).each do |q|
+      f.puts "#{i}\t#{q}\t#{dist[q]}"
+    end
+    f.puts "EOD"
+  end
+  f.puts <<EOD
+unset key
+set terminal pdf
+set view 74,222
+set xrange [#{is.begin}:#{is.end}]
+set yrange [1:#{qmax}]
+set xlabel 'I'
+set ylabel 'Q'
+set zlabel 'P(Q|I)'
+set xyplane 0.1
+set style data lines
+EOD
+  f.puts "splot #{is.map { |i| "'$data#{i}' linetype rgb '#{gradient([0, 255, 255], [0, 0, 255], is.begin, is.end, i)}'" }.join(', ')}"
+end
+
 # create a 3D plot of extra response distribution for each query
-File.open("exre_dist_#{n}_#{t}.gp", 'w') do |f|
+File.open("exre_dist_#{suff}.gp", 'w') do |f|
   f.puts "$data << EOD"
   leaks.each_with_index do |d, i|
     f.puts "#{i + 1}\t0\t#{d[0]}"
@@ -109,7 +175,7 @@ splot $data linetype rgb 'black', #{leaks.each_index.map { |i| "'$datad#{i}' lin
 end
 
 # create a data file of just direct response distribution
-File.open("exre_#{n}_#{t}.data", 'w') do |f|
+File.open("exre_#{suff}.data", 'w') do |f|
   leaks.each_with_index do |d, j|
     f.puts "#{j+1}\t#{d[0]}"
   end

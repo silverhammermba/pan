@@ -483,9 +483,9 @@ simulation and then use the same assumption of equally likely queries from
 
 \begin{figure}%
     \centering
-	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{chart_qdist3d.pdf}}}%
-	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_qdist3d_final.pdf}}}%
-	\caption{Calculating $P(Q|I)$ with unreliable peers ($r=0.25$) via network
+	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{chart_omega_unrel_10_50.pdf}}}%
+	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_qdist_unrel_10_50.pdf}}}%
+	\caption{Calculating $P(Q|I)$ with unreliable peers ($r=0.50$) via network
 	simulation ($n=10$). Each line in (a) shows the distribution
 	$P(\Omega|I=i)$ for different $i$, while lines in (b) show $P(Q|I=i)$.}
     \label{fig:unreliable}%
@@ -507,8 +507,8 @@ overall before the knowledge spreads.
 
 \begin{figure}%
     \centering
-	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{chart_qdist3d_er.pdf}}}%
-	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_qdist3d_er_final.pdf}}}%
+	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{chart_omega_unrel_10_1.pdf}}}%
+	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_qdist_exre_10_1.pdf}}}%
 	\caption{Calculating $P(Q|I)$ with extra responses ($t=1$) via network
 	simulation ($n=10$). The format is the same as \figref{unreliable}.}
     \label{fig:exre}%
@@ -526,10 +526,10 @@ alleviates our concern of using small $t$ that we had from \secref{exre}.
 
 \begin{figure}%
     \centering
-	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{chart_qdist3d_uer.pdf}}}%
-	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_qdist3d_uer_final.pdf}}}%
+	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{chart_omega_unexre_10_1_50.pdf}}}%
+	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_qdist_unexre_10_1_50.pdf}}}%
 	\caption{Calculating $P(Q|I)$ with unreliable peers and extra responses
-	($r=0.25$, $t=1$) via network simulation ($n=10$). The format is the same
+	($r=0.50$, $t=1$) via network simulation ($n=10$). The format is the same
 	as \figref{unreliable}.}
     \label{fig:uexre}%
 \end{figure}
@@ -562,7 +562,7 @@ calculations in \secref{kdist}.
 	represents the private information gained by a particular peer at the time
 	it queries (in terms of the posterior probability on $S$). Note the
 	logarithmic scale on the $X$ axis. The parameters used were $n=10$,
-	$r=0.25$, $t=1$.}
+	$r=0.50$, $t=1$.}
     \label{fig:comp}%
 \end{figure}
 
@@ -605,7 +605,7 @@ hope!) which indicates that they are all viable attribution privacy methods.
     \centering
 	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{chart_exre_dist_10_1.pdf}}}%
 	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_unexre_dist_10_1_50.pdf}}}%
-	\caption{Calculating $P(Q|I)$ with unreliable peers ($r=0.25$) via network
+	\caption{Calculating $P(Q|I)$ with unreliable peers ($r=0.50$) via network
 	simulation ($n=10$). Each line in (a) shows the distribution
 	$P(\Omega|I=i)$ for different $i$, while lines in (b) show $P(Q|I=i)$.}
     \label{fig:unreliable}%
