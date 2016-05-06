@@ -1,17 +1,19 @@
 # generate Makefile dependencies for gnuplots
 
-Dir.glob('*.gp').each do |plot|
-  s =  File.read(plot)
-  deps = s.scan(/"([^"\\]*(\\.[^"\\]*)*)"|\'([^\'\\]*(\\.[^\'\\]*)*)\'/).flatten.compact.select { |str| str.end_with? '.data' }
-  next if deps.empty?
+ARGV.each do |file|
+  if file.end_with? '.gp'
+    s =  File.read(file)
+    deps = s.scan(/"([^"\\]*(\\.[^"\\]*)*)"|\'([^\'\\]*(\\.[^\'\\]*)*)\'/).flatten.compact.select { |str| str.end_with? '.data' }
+    next if deps.empty?
 
-  puts "chart_#{File.basename(plot, '.gp')}.pdf: #{deps.join(' ')}"
-end
+    puts "chart_#{File.basename(file, '.gp')}.pdf: #{deps.join(' ')}"
+  elsif file.end_with? '.tex'
+    s = File.read(file)
+    deps = s.scan(/\{([^{}]+.pdf)\}/).flatten
+    next if deps.empty?
 
-Dir.glob('*.tex').each do |tex|
-  s = File.read(tex)
-  deps = s.scan(/\{([^{}]+.pdf)\}/).flatten
-  next if deps.empty?
-
-  puts "#{File.basename(tex, '.tex')}.pdf: #{deps.join(' ')}"
+    puts "#{File.basename(file, '.tex')}.pdf: #{deps.join(' ')}"
+  else
+    exit 1
+  end
 end

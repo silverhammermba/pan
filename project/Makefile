@@ -4,8 +4,8 @@ report.pdf: report.tex
 	pdflatex -interaction nonstopmode $<
 	pdflatex $<
 
-.deps: comp.gp comp_unrel.gp $(wildcard *.tex)
-	ruby deps.rb > $@
+.deps: comp.gp comp_unrel.gp report.tex
+	ruby deps.rb $^ > $@
 
 chart_%.pdf: %.gp
 	gnuplot $< > $@
