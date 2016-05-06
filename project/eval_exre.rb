@@ -95,7 +95,7 @@ File.open("exre_dist_#{n}_#{t}.gp", 'w') do |f|
     f.puts "EOD"
   end
   f.puts <<-CMD
-terminal pdf
+set terminal pdf
 unset key
 set xyplane 0.1
 set xlabel 'Peer'
