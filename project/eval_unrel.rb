@@ -37,15 +37,16 @@ rd = Integer(ARGV[1], 10)
 r = rd.to_f / 100
 suff = "#{n}_#{rd}"
 
-leaks = Hash.new 0.0
+leaks = Hash.new
 sims(1, n, r).each do |data|
   data[:responses].each do |res|
     post = post_given_resp(n, res[1], r, data[:prior_s], res[2], r)
-    leaks[res[0]] += post
+    leaks[res[0]] ||= [0.0, 0]
+    leaks[res[0]][0] += post
+    leaks[res[0]][1] += 1
   end
 end
-total = sims(1,n,r).size.to_f
-leaks.each { |k, v| leaks[k] = v / total }
+leaks.each { |k, v| leaks[k] = v[0] / v[1] }
 
 is = (1..[20, n - 1].min)
 qmin = 1.0/0
