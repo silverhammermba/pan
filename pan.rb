@@ -19,7 +19,7 @@ end
 
 # prob s successes out of t trials with prob p of success
 def binom s, t, p
-  t.choose(s) * p ** s * (t - s) ** (1 - p)
+  t.choose(s) * p ** s * (1-p) ** (t-s)
 end
 
 # P(S|H=k)
