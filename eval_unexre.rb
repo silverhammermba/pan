@@ -98,20 +98,24 @@ r = rd.to_f / 100
 suff = "#{n}_#{t}_#{rd}"
 
 
-leaks = []
+leaks = {}
+extra_leaks = {}
 sims(1, n, [t, r]).each do |data|
   data[:responses].each_with_index do |res, i|
+    leaks[i] ||= [0.0, 0]
+    leaks[i][0] += post_given_resp(n, res[:direct], r, data[:prior_s], res[:queries], [t, r])
+    leaks[i][1] += 1
+
+    extra_leaks[i] ||= Array.new(n-2, 0.0)
     probs = res[:extra].map do |ex|
       post_given_resp(n, ex, data[:prob_ex], data[:prior_s], res[:queries], [t, r])
     end.sort.reverse
-    probs.unshift post_given_resp(n, res[:direct], r, data[:prior_s], res[:queries], [t, r])
-
-    leaks[i] ||= Hash.new(0.0)
-    probs.each_with_index { |pr, j| leaks[i][j] += pr }
+    probs.each_with_index { |pr, j| extra_leaks[i][j] += pr }
   end
 end
+leaks.each { |k, v| leaks[k] = v[0] / v[1] }
 total = sims(1,n,[t,r]).size.to_f
-leaks.each { |dist| dist.each { |k, v| dist[k] = v.to_f / total } }
+extra_leaks.each { |k, v| v.map! { |pr| pr / total } }
 
 is = (1..[20, n - 1].min)
 qmin = 1.0/0
@@ -180,34 +184,36 @@ end
 # create a 3D plot of extra response distribution for each query
 File.open("unexre_dist_#{suff}.gp", 'w') do |f|
   f.puts "$data << EOD"
-  leaks.each_with_index do |d, i|
-    f.puts "#{i + 1}\t0\t#{d[0]}"
+  leaks.each do |i, d|
+    f.puts "#{i + 1}\t0\t#{d}"
   end
   f.puts "EOD"
-  leaks.each_with_index do |dist, i|
+  extra_leaks.each do |i, dist|
     f.puts "$datad#{i} << EOD"
-    (dist.keys.min..dist.keys.max).each do |k|
-      f.puts "#{i + 1}\t#{k}\t#{dist[k]}"
+    f.puts "#{i + 1}\t0\t#{leaks[i]}"
+    dist.each_with_index do |pr, j|
+      f.puts "#{i + 1}\t#{j + 1}\t#{pr}"
     end
     f.puts "EOD"
   end
   f.puts <<-CMD
 set terminal pdf
 unset key
-set xyplane 0.1
+set xyplane 0.0
+set zrange [0:#{leaks[0]}]
 set xlabel 'Attacker'
 set ylabel 'Other Peers'
 set zlabel 'P(S|response)' rotate parallel
 set ytics offset -1
 set view 66,132
 set style data lines
-splot $data linetype rgb 'black', #{leaks.each_index.map { |i| "'$datad#{i}' linetype rgb '#{gradient([0, 0, 255], [18, 157, 0], 0, leaks.size - 1, i)}'" }.join(', ')}
+splot $data linetype rgb 'black', #{leaks.each_key.map { |i| "'$datad#{i}' linetype rgb '#{gradient([0, 0, 255], [18, 157, 0], 0, leaks.size - 1, i)}'" }.join(', ')}
   CMD
 end
 
 # create a data file of just direct response distribution
 File.open("unexre_#{suff}.data", 'w') do |f|
-  leaks.each_with_index do |d, j|
-    f.puts "#{j+1}\t#{d[0]}"
+  leaks.each do |j, pr|
+    f.puts "#{j+1}\t#{pr}"
   end
 end
