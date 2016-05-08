@@ -1,8 +1,10 @@
+.DELETE_ON_ERROR:
+
 all: report.pdf
 
-report.pdf: report.tex
+%.pdf %.aux %.log: %.tex
 	pdflatex -interaction nonstopmode $<
-	pdflatex -interaction batchmode $<
+	while grep 'Rerun to get ' $*.log ; do pdflatex -interaction batchmode $< ; done
 
 .deps: comp.gp comp_unrel.gp report.tex
 	ruby deps.rb $^ > $@
