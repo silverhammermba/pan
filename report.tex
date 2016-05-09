@@ -214,6 +214,8 @@ we assumed there was only one such source, it must be $s$. Thus by sharing their
 knowledge about $q$, $x$ has inadvertently shared the fact that they possess
 source $s$.
 
+% TODO diagram showing leakage for one/two peers responding
+
 We can reason that this is the worst possible case as follows: if there were
 multiple sources related to $q$, then $y$ would only know that $x$ possesses one
 of those sources; it would not necessarily know which one. Also, if there were
@@ -364,6 +366,8 @@ $q$ with probability $t/(n-2)$. It is as if $\beta$ itself made the query and ea
 peer responds probabilistically, which is exactly the situation with unreliable
 peers, only now $r=t/(n-2)$ and $M$ is the number of extra responses received by
 $\beta$.
+
+% TODO diagram showing flooding attack
 
 The point of sending out random extra responses would be defeated if
 $P(S|M=m)>P(S|H=m)$ because then the extra responses a peer sends out would
@@ -666,7 +670,8 @@ has a low initial leakage for the first few peers to be queried, but also
 approaches $P(S)$ much quicker than the worst case. We were surprised to see
 that the leakage was even lower than unreliable peers with the same $r$.
 Although we are uncertain of the exact reason for this, we speculate that this
-is due to the $P(S|M)$ calculation involving $P(H)$. The extra responses
+is due to the $P(S|M)$ calculation involving $P(H)$ (\eqnref{psm},
+\secref{unreliable}). The extra responses
 shrink $P(H=k)$ for small $k$ (because the knowledge spreads quicker), thus a
 small number of peers responding to a query are likely to be part of a larger
 set of peers who actually have the knowledge, which results in smaller $P(S|M)$.
