@@ -483,7 +483,7 @@ an accurate result (and are much simpler to implement). However we observe that
 this calculation only appears in \eqnref{hgq} as a product with $P(Q=u|I=i)$. We
 will see in \secref{qgiveni} that $P(Q=u|I=i)$ will only be nonzero for a
 limited range of $i$. Thus in practice we need only calculate $P(H=k|I=i\cap
-Q=u)$ when this product has a chance of being nonzero. See \secref{pan} for the
+Q=u)$ when this product has a chance of being nonzero. See \secref{eval} for the
 result.
 
 Similarly for the case of extra responses from \secref{exre}, the general
@@ -590,9 +590,7 @@ long tail.
 
 % TODO does this mix turn out to be good?
 
-\section{Evaluation}\label{sec:pan}
-
-How well does it work?
+\section{Evaluation}\label{sec:eval}
 
 With the calculations developed in the previous sections, we can finally
 implement a private attribution network using the protocol changes from sections
@@ -605,11 +603,12 @@ calculations in \secref{kdist}.
 	\includegraphics[width=0.75\textwidth]{chart_comp_unrel.pdf}
 	\caption{Comparison of the Unreliable Peers protocol with varying $r$
 	($n=100$). Each line represents the private leakage as a function of when
-	the attacker queries. E.g. the first point represents the leakage if an
-	attacker is the first peer to make a query, the second point is if they are
-	the second peer, etc. The leakage is averaged over thousands of network
-	simulations, so it is possible for the actual leakage to be higher or lower in a
-	specific situation. Note the logarithmic scale on the $X$ axis.}
+	the attacker queries (ignoring failed queries). E.g. the first point
+	represents the leakage if an attacker is the first peer to make a successful
+	query, the second point is if they are the second peer, etc. The leakage is
+	averaged over thousands of network simulations, so it is possible for the
+	actual leakage to be higher or lower in a specific situation. Note the
+	logarithmic scale on the $X$ axis.}
     \label{fig:compunrel}%
 \end{figure}
 
@@ -623,24 +622,24 @@ Our first question was about the effect of differing $r$ on the unreliable peers
 protocol. The results of these measurements are shown in \figref{compunrel}.
 The ``Worst case'' line is the leakage in the simple deterministic case from
 \secref{baseline} where the leakage is simply given by $P(S|H=k)$. Note that
-this is equivalent to the unreliable peers protocol with $r=1$. Thus
-\figref{compunrel} indicates that even slightly decreasing $r$ results in
-a dramatic privacy benefit. Afterwards changes in $r$ are less dramatic. For
-this reason we chose $r=0.99$ for all other cases where unreliable peers were
-used.
+this is equivalent to the unreliable peers protocol with $r=1$. Because the
+leakage of unreliable peers is given by $P(S|M=m)$, this figure
+indicates that $P(S|M=m)$ converges to $P(S|H=k)$ as $m$ and $k$ increase and
+that decreasing $r$ delays this convergence. For example, $r=0.8$ provides a
+slight privacy benefit to only the first peer that is queried because it is nearly identical
+by the second peer, whereas $r=0.2$ provides a privacy benefit to the first
+three or four peers. Because the worst-case leakage approaches $P(S)$, we can
+choose a point at which we deem this leakage negligible and choose $r$ such that
+the convergence occurs after this point. Or if even stronger privacy is
+required, we could choose $r$ such that $P(S|M)$ always remains below some point
 
 % TODO think about how P(S|M) can actually be greater than P(S|K) when m != k
 
 \begin{figure}%
     \centering
 	\includegraphics[width=0.75\textwidth]{chart_comp.pdf}
-	\caption{Comparison of different network protocols in terms of private
-	information leakage. Each peer is numbered in the order that it first
-	acquires knowledge via successfully querying for $q$. A point on a line
-	represents the private information gained by a particular peer at the time
-	it queries (in terms of the posterior probability on $S$). Note the
-	logarithmic scale on the $X$ axis. The parameters used were $n=100$,
-	$r=0.5$, $t=1$.}
+	\caption{Comparison of different network protocols ($n=100$, $r=0.5$, $t=1$).
+	The format is the same as in \figref{compunrel}.}
     \label{fig:comp}%
 \end{figure}
 
