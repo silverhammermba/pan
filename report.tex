@@ -61,6 +61,16 @@ information that was originally targeted by the ad. Formalizing this type of
 privacy leak lead to the definition in \secref{defn}. See \secref{xray} for a
 technical description of collaborative XRay as an attribution privacy risk.
 
+We found it necessary to coin the term ``attribution privacy'' after failing to
+find similar research in the field of privacy in P2P networks. Most work in this
+area appears to focus on protecting the identities of the users involved or
+protecting non-participants in the network from seeing what data are being
+exchanged\cite{privatep2p}. We suspect that this is due to the strong
+association of P2P networks with illegal file-sharing. Although extant private
+P2P software would make attribution privacy a moot point (since they ensure that
+you can trust the other peers), we show that this level of privacy is
+completely independent of attribution privacy.
+
 Because attribution privacy applies to P2P networks, we examined possible P2P
 systems to which it might apply. Distributed hash tables (DHT) such as
 Chord\cite{chord} appeared to be a possible candidate since they have a notion
@@ -71,7 +81,7 @@ more traditional file-sharing model (e.g. BitTorrent) where data are duplicated
 throughout the network as peers demand them.
 
 We also considered other network privacy methods as possible solutions to
-attribution privacy leaks. Tor was considered because the anonymity it provides
+attribution privacy leaks. The anonymity provided by Tor
 automatically provides attribution privacy as a side-effect (if you do not know
 with whom you are communicating, you cannot attribute the data to anyone).
 However we show by definition and by example that complete anonymity is not
@@ -147,7 +157,7 @@ about its private sources. In other words, it is possible for other peers to
 
 \section{Applications}\label{sec:example}
 
-\subsection{Nickelback}
+\subsection{Nickelback}\label{sec:nickelback}
 
 A simple (somewhat facetious) example is of a small town in which no one likes
 the Canadian rock band Nickelback. Here we imagine the townspeople as peers in
@@ -170,7 +180,7 @@ source. This is a P2P network where private attribution is needed.
 
 \subsection{Collaborative Advertisement Auditing}\label{sec:xray}
 
-Consider a P2P system in which peers collaborate to determine how online
+Imagine a P2P system in which peers collaborate to determine how online
 advertisements are targeted. This is achieved by peers sharing which ads they
 have seen along with the personal data those ads appeared with. By comparing
 which data have/have not been present when certain ads were seen, the ad
@@ -183,14 +193,13 @@ targeting criteria i.e. which personal data are targeted by which ads.
 Interestingly, the private sources $\mathcal{S}$ in this case are identical to
 $\mathcal{D}$: if you originate the knowledge that a particular ad targets
 particular data, then informing others of that association also divulges that
-you possess the targeted data. Such a P2P network must consider its members'
+you possess the targeted data. Such a P2P network must concern itself with its members'
 attribution privacy.
 
 \section{Privacy Risk}\label{sec:prrsk}
 \subsection{Baseline}\label{sec:baseline}
 
-To measure the attribution privacy risk in a P2P network, we start by
-considering the worst-case scenario. Suppose that for knowledge about some $q$
+To measure the attribution privacy risk in a P2P network, we start with the worst-case scenario. Suppose that for knowledge about some $q$
 there is only a single source $s$, only a single peer $x$ with access to that
 source (i.e. a single origin), and that $x$ has not shared any knowledge of $q$
 with the rest of the network. Another peer $y$ who wants to learn about $K(q)$
@@ -367,7 +376,7 @@ has some control over $r$ and thus $M$. If we have a swarm of $n$ peers,
 an attacker can add $b$ malicious peers to the swarm. These malicious peers can
 share information among themselves, such as who they have received extra
 responses from. In effect, the $b$ peers behave like a single peer that has a
-higher chance of receiving extra responses.
+higher chance of receiving extra responses. We call this a ``flooding attack''.
 
 \begin{theorem}
 	If extra responses are sent with probability $\frac{t}{n-2}$, then the
@@ -504,7 +513,7 @@ queries it takes for every peer to have the knowledge.
 	P(Q=u|I=i)=\sum_{v=0}^\infty P(Q=u\cap\Omega=v|I=i)
 \end{equation}
 
-Consider deterministic responses as in \secref{baseline}. If a peer were to
+With deterministic responses as in \secref{baseline}, if a peer were to
 observe the network over its lifetime, given $i$ origins it would see $n-i-1$
 queries: one for each of the peers that does not have the knowledge (not
 counting itself). For this protocol, \eqnref{pqi} simplifies to
@@ -547,7 +556,7 @@ calculation is that we also see the performance impact of the protocol.
 Because $P(\Omega|I)$ is also a sort of measure of how long it takes every peer
 to learn the knowledge, it is a decent measure of the worst-case performance of
 the network. We can see that for a small number of origins, while the smaller
-values of $Q$ have the highest probabilities, $P(Q|I)$ has a very long tail,
+values of $Q$ have the highest probabilities, $P(Q|I)$ has a long tail,
 indicating that in some cases we might require significantly more queries
 overall before the knowledge spreads.
 
@@ -556,7 +565,8 @@ overall before the knowledge spreads.
 	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{chart_omega_exre_100_1.pdf}}}%
 	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_qdist_exre_100_1.pdf}}}%
 	\caption{Calculating $P(Q|I)$ with extra responses ($t=1$) via network
-	simulation ($n=100$). The format is the same as \figref{unrelqueries}.}
+	simulation ($n=100$). The format is the same as \figref{unrelqueries}, but
+	note the difference in scale for $\Omega$ and $Q$.}
     \label{fig:exrequeries}%
 \end{figure}
 
@@ -576,7 +586,8 @@ alleviates our concern of using small $t$ that we had from \secref{exre}.
 	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_qdist_unexre_100_1_20.pdf}}}%
 	\caption{Calculating $P(Q|I)$ with unreliable peers and extra responses
 	($r=0.2$, $t=1$) via network simulation ($n=100$). The format is the same
-	as \figref{unrelqueries}.}
+	as \figref{unrelqueries}, but note the difference in scale for $\Omega$ and
+	$Q$.}
     \label{fig:unexrequeries}%
 \end{figure}
 
@@ -584,11 +595,9 @@ Because these calculations are done empirically, it is straightforward to extend
 the combination of the two techniques: unreliable peers where each peer sends
 extra responses. The result is shown in \figref{unexrequeries}. As we might expect, the
 resulting distribution exhibits a mix of those from figures
-\ref{fig:unrelqueries}
-and \ref{fig:exrequeries}: slow convergence to a uniform distribution with a moderately
-long tail.
-
-% TODO does this mix turn out to be good?
+\ref{fig:unrelqueries} and \ref{fig:exrequeries}: slow convergence to a uniform
+distribution with a moderately long tail. We observe in \secref{eval} that this
+also translates to good privacy performance.
 
 \section{Evaluation}\label{sec:eval}
 
@@ -601,7 +610,7 @@ calculations in \secref{kdist}.
 \begin{figure}%
     \centering
 	\includegraphics[width=0.75\textwidth]{chart_comp_unrel.pdf}
-	\caption{Comparison of the Unreliable Peers protocol with varying $r$
+	\caption{Comparison of the unreliable peers protocol with varying $r$
 	($n=100$). Each line represents the private leakage as a function of when
 	the attacker queries (ignoring failed queries). E.g. the first point
 	represents the leakage if an attacker is the first peer to make a successful
@@ -630,8 +639,7 @@ slight privacy benefit to only the first peer that is queried because it is near
 by the second peer, whereas $r=0.2$ provides a privacy benefit to the first
 three or four peers. Because the worst-case leakage approaches $P(S)$, we can
 choose a point at which we deem this leakage negligible and choose $r$ such that
-the convergence occurs after this point. Or if even stronger privacy is
-required, we could choose $r$ such that $P(S|M)$ always remains below some point
+the convergence occurs after this point.
 
 % TODO think about how P(S|M) can actually be greater than P(S|K) when m != k
 
@@ -647,49 +655,142 @@ Next we compared the effect of the different protocols, shown in \figref{comp}.
 As expected, extra responses provides no privacy benefit if the attacker is the
 first peer to query, since the intention is to provide higher privacy to {\it
 later} queries. Indeed the leakage decreases more quickly for extra
-resposes than it does for unreliable peers, exceeding it by the third or fourth
-query. Note also that the extra responses line stops short of the end of the
-chart: it takes far fewer queries to fully spread the knowledge, so no
-simulations ever reached beyond 10 or so attackers.
+responses than it does for unreliable peers, beating it by the third or fourth
+query. By the tenth or so query, the leakage is already negligible compared to
+$P(S)$. By that point it is likely that almost every peer has the knowledge,
+thus $k\approx n$ and $P(S|H=k)\approx P(S)$.
 
 ``Both'' shows the effect of combining both unreliable peers and extra
-responses. Surprisingly, this did not perform in between the two other protocols
-as expected, but apparently improves on both of them!
+responses. The resulting protocol provides a good balance between the two: it
+has a low initial leakage for the first few peers to be queried, but also
+approaches $P(S)$ much quicker than the worst case. We were surprised to see
+that the leakage was even lower than unreliable peers with the same $r$.
+Although we are uncertain of the exact reason for this, we speculate that this
+is due to the $P(S|M)$ calculation involving $P(H)$. The extra responses
+shrink $P(H=k)$ for small $k$ (because the knowledge spreads quicker), thus a
+small number of peers responding to a query are likely to be part of a larger
+set of peers who actually have the knowledge, which results in smaller $P(S|M)$.
 
-% TODO need to average unrel over more samples in order to get better convergence
 \begin{figure}%
     \centering
-	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{chart_exre_dist_100_1.pdf}}}%
-	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_unexre_dist_100_1_50.pdf}}}%
-	\caption{TODO}
+	\includegraphics[width=0.75\textwidth]{chart_exre_dist_100_1.pdf}
+	\caption{Distribution of privacy leakage due to extra responses. The black
+	curve is identical to the extra responses curve in \figref{comp} (though
+	mirrored). The perpendicular curves show the distribution of leakage among
+	all other peers in the network, resulting from extra responses sent during
+	that attacker's query.}
     \label{fig:exdist}%
 \end{figure}
 
+\begin{figure}%
+    \centering
+	\includegraphics[width=0.75\textwidth]{chart_unexre_dist_100_1_20.pdf}
+	\caption{Distribution of privacy leakage due to extra responses with
+	unreliable peers. The format is the same as in \figref{exdist}.}
+    \label{fig:uexdist}%
+\end{figure}
+
+\Figref{comp} is slightly misleading because the two protocols involving extra
+responses only provide a faster leakage falloff because the extra responses
+spread out the leakage more uniformly in the network. Thus we need to measure
+the distribution of this leakage in order to determine if the trade-off is worth
+it. The results are shown in figures \ref{fig:exdist} and \ref{fig:uexdist}. We
+can see that for early queries, this leakage is insignificant as we would expect:
+few peers are likely to receive an extra response at all. For later queries,
+the leakage becomes more uniform as the number of extra responses increases,
+however we see that significant leakage never extends beyond around 30\% of the
+network ($n=100$), and even then the leakage is already so close to $P(S)$ that
+it could be considered acceptable.
+
 \section{Discussion \& Conclusion}
+
+We have shown that although attribution privacy can be a significant risk in
+certain situations, the techniques we have developed in this paper can be
+employed to effectively mitigate the risk. The method of unreliable peers can be
+applied (with a carefully chosen parameter) to ensure that a desired level of
+privacy is maintained even when a small number of peers respond to a query.
+The method of extra responses can be applied to ``pay
+forward'' privacy to other peers in the network by ensuring the knowledge
+spreads faster. Although extra responses make the network susceptible to an
+attacker that floods the network with malicious peers, the risk can be
+controlled by carefully choosing the parameter for the extra responses.
+Furthermore, we showed empirically that these two methods synergize to provide
+an even greater privacy benefit than either method on its own.
+
+We conclude that the methods of unreliable peers and extra responses are a firm
+starting point for any P2P application in which attribution privacy is involved.
+They can be tuned to preserve (or increase) network performance while
+maintaining whatever level of privacy is demanded by the application.
 
 \subsection{Future Work}\label{sec:future}
 
-\begin{thebibliography}{9}
+As mentioned in \secref{relwork}, this research was originally part of a much
+larger project, and there still remain several barriers preventing a practical
+implementation of a private attribution network. First, we were only able to
+measure network performance in terms of the maximum number of queries needed for
+knowledge of a single query to fully spread. It is unclear what exactly the
+affect would be on an individual level, for a peer making many separate queries
+with different sources. We also assumed that every peer queries every other
+peer, as this simplified analysis and also matched the behavior that an attacker
+might use in order to learn as much private information as possible. But in a
+practical implementation, this behavior may not be desirable (for non-malicious
+peers). It would be interesting to see what the ``accidental'' leakage is if
+peers query only a subset of the network, and how this leakage is affected by
+the two protocols we examined. Both the performance and accidental leakage
+depend greatly on the specific use-case of the private attribution network, so
+we leave their investigation to future researchers.
 
-\bibitem{xray}
-	M. L\'ecuyer, G. Ducoffe, F. Lan, A. Papancea, T. Petsios, R. Spahn, A. Chaintreau, and R. Geambasu.
-	XRay: Enhancing the Web's Transparency with Differential Correlation.
-	\emph{USENIX Security}, 2014.
+We also considered a mechanism similar to extra responses, where a peer would
+actually not reply to the querying peer at all. Instead the peers receiving
+extra responses would be responsible for eventually relaying the data back to
+the peer that made the query. This would provide even greater privacy by masking
+the replying peer from the querying peer in a Tor-like way, while also spreading
+knowledge through the network via the extra responses. Unfortunately we were
+unable to quantify the privacy provided by this method during our research. This
+could also be extended as a method for peers to gain knowledge without needing
+to query the entire network, by having the queried peers send out {\it extra
+queries} on behalf of the original querying peer.
+
+One potential attack that we did not have time to address is if an attacker
+makes repeated queries in order to circumvent the randomness of the unreliable
+peers protocol. Such an attack could be implemented similar to the flooding
+attack of extra responses, where multiple malicious peers all make the same
+query and collaborate to artificially increase $r$. This could be defended
+against by choosing $r$ inversely proportional to $n$ as with extra responses,
+or by regulating responses such that an unreliable peer will consistently lie
+about a query for some time after initially queried.
+
+We described attribution privacy in an asymmetric setting where an attacker
+queries a potentially vulnerable peer. But this could also be extended to a
+situation where the queries themselves are sensitive. In our Nickelback example
+from \secref{nickelback}, we can imagine that someone might be equally
+embarrassed to ask about a Nickelback song, for fear of appearing to be a
+Nickelback fan themselves. Or in the advertisement example from \secref{xray},
+someone querying about an ad might reveal that they possess the sensitive data
+which the ad targets. In such cases, the P2P network would need to protect both
+the querying peer and the queried peer.
+
+\begin{thebibliography}{9}
 
 \bibitem{privatep2p}
 	M. Rogers, S. Bhatti.
 	How to Disappear Completely: A Survey of Private Peer-to-Peer Networks.
 	\emph{Sustaining Privacy in Autonomous Collaborative Environments (SPACE)}, 2007.
 
-\bibitem{randresps}
-	C. Dwork, A. Roth.
-	The Algorithmic Foundations of Differential Privacy.
-	\emph{Foundations and Trends in Theoretical Computer Science} 9.3-4 (2014): 211-407.
+\bibitem{xray}
+	M. L\'ecuyer, G. Ducoffe, F. Lan, A. Papancea, T. Petsios, R. Spahn, A. Chaintreau, and R. Geambasu.
+	XRay: Enhancing the Web's Transparency with Differential Correlation.
+	\emph{USENIX Security}, 2014.
 
 \bibitem{chord}
 	I. Stoica, R. Morris, D. Karger, M.F. Kaashoek, H. Balakrishnan.
 	Chord: A Scalable Peer-to-peer Lookup Service for {Internet} Applications.
 	\emph{Proceedings of the {ACM} {SIGCOMM} '01 Conference}, Aug 2001.
+
+\bibitem{randresps}
+	C. Dwork, A. Roth.
+	The Algorithmic Foundations of Differential Privacy.
+	\emph{Foundations and Trends in Theoretical Computer Science} 9.3-4 (2014): 211-407.
 
 \end{thebibliography}
 
