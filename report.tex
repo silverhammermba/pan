@@ -529,10 +529,10 @@ simulation and then use the same assumption of equally likely queries from
 
 \begin{figure}%
     \centering
-	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{chart_omega_unrel_10_99.pdf}}}%
-	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_qdist_unrel_10_99.pdf}}}%
-	\caption{Calculating $P(Q|I)$ with unreliable peers ($r=0.99$) via network
-	simulation ($n=10$). Each line in (a) shows the distribution
+	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{chart_omega_unrel_100_50.pdf}}}%
+	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_qdist_unrel_100_50.pdf}}}%
+	\caption{Calculating $P(Q|I)$ with unreliable peers ($r=0.5$) via network
+	simulation ($n=100$). Each line in (a) shows the distribution
 	$P(\Omega|I=i)$ for different $i$, while lines in (b) show $P(Q|I=i)$.}
     \label{fig:unrelqueries}%
 \end{figure}
@@ -553,10 +553,10 @@ overall before the knowledge spreads.
 
 \begin{figure}%
     \centering
-	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{chart_omega_exre_10_1.pdf}}}%
-	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_qdist_exre_10_1.pdf}}}%
+	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{chart_omega_exre_100_1.pdf}}}%
+	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_qdist_exre_100_1.pdf}}}%
 	\caption{Calculating $P(Q|I)$ with extra responses ($t=1$) via network
-	simulation ($n=10$). The format is the same as \figref{unrelqueries}.}
+	simulation ($n=100$). The format is the same as \figref{unrelqueries}.}
     \label{fig:exrequeries}%
 \end{figure}
 
@@ -572,10 +572,10 @@ alleviates our concern of using small $t$ that we had from \secref{exre}.
 
 \begin{figure}%
     \centering
-	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{chart_omega_unexre_10_1_99.pdf}}}%
-	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_qdist_unexre_10_1_99.pdf}}}%
+	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{chart_omega_unexre_100_1_50.pdf}}}%
+	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_qdist_unexre_100_1_50.pdf}}}%
 	\caption{Calculating $P(Q|I)$ with unreliable peers and extra responses
-	($r=0.99$, $t=1$) via network simulation ($n=10$). The format is the same
+	($r=0.5$, $t=1$) via network simulation ($n=100$). The format is the same
 	as \figref{unrelqueries}.}
     \label{fig:unexrequeries}%
 \end{figure}
@@ -604,7 +604,7 @@ calculations in \secref{kdist}.
     \centering
 	\includegraphics[width=0.75\textwidth]{chart_comp_unrel.pdf}
 	\caption{Comparison of the Unreliable Peers protocol with varying $r$
-	($n=10$). Each line represents the private leakage as a function of when
+	($n=100$). Each line represents the private leakage as a function of when
 	the attacker queries. E.g. the first point represents the leakage if an
 	attacker is the first peer to make a query, the second point is if they are
 	the second peer, etc. The leakage is averaged over thousands of network
@@ -639,7 +639,7 @@ used.
 	acquires knowledge via successfully querying for $q$. A point on a line
 	represents the private information gained by a particular peer at the time
 	it queries (in terms of the posterior probability on $S$). Note the
-	logarithmic scale on the $X$ axis. The parameters used were $n=10$,
+	logarithmic scale on the $X$ axis. The parameters used were $n=100$,
 	$r=0.5$, $t=1$.}
     \label{fig:comp}%
 \end{figure}
@@ -660,8 +660,8 @@ as expected, but apparently improves on both of them!
 % TODO need to average unrel over more samples in order to get better convergence
 \begin{figure}%
     \centering
-	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{chart_exre_dist_10_1.pdf}}}%
-	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_unexre_dist_10_1_50.pdf}}}%
+	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{chart_exre_dist_100_1.pdf}}}%
+	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_unexre_dist_100_1_50.pdf}}}%
 	\caption{TODO}
     \label{fig:exdist}%
 \end{figure}
