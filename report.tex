@@ -529,9 +529,9 @@ simulation and then use the same assumption of equally likely queries from
 
 \begin{figure}%
     \centering
-	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{chart_omega_unrel_100_50.pdf}}}%
-	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_qdist_unrel_100_50.pdf}}}%
-	\caption{Calculating $P(Q|I)$ with unreliable peers ($r=0.5$) via network
+	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{chart_omega_unrel_100_20.pdf}}}%
+	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_qdist_unrel_100_20.pdf}}}%
+	\caption{Calculating $P(Q|I)$ with unreliable peers ($r=0.2$) via network
 	simulation ($n=100$). Each line in (a) shows the distribution
 	$P(\Omega|I=i)$ for different $i$, while lines in (b) show $P(Q|I=i)$.}
     \label{fig:unrelqueries}%
@@ -572,10 +572,10 @@ alleviates our concern of using small $t$ that we had from \secref{exre}.
 
 \begin{figure}%
     \centering
-	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{chart_omega_unexre_100_1_50.pdf}}}%
-	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_qdist_unexre_100_1_50.pdf}}}%
+	\subfloat[$P(\Omega|I)$]{{\includegraphics[width=0.5\textwidth]{chart_omega_unexre_100_1_20.pdf}}}%
+	\subfloat[$P(Q|I)$]{{\includegraphics[width=0.5\textwidth]{chart_qdist_unexre_100_1_20.pdf}}}%
 	\caption{Calculating $P(Q|I)$ with unreliable peers and extra responses
-	($r=0.5$, $t=1$) via network simulation ($n=100$). The format is the same
+	($r=0.2$, $t=1$) via network simulation ($n=100$). The format is the same
 	as \figref{unrelqueries}.}
     \label{fig:unexrequeries}%
 \end{figure}
@@ -638,7 +638,7 @@ required, we could choose $r$ such that $P(S|M)$ always remains below some point
 \begin{figure}%
     \centering
 	\includegraphics[width=0.75\textwidth]{chart_comp.pdf}
-	\caption{Comparison of different network protocols ($n=100$, $r=0.5$, $t=1$).
+	\caption{Comparison of different network protocols ($n=100$, $r=0.2$, $t=1$).
 	The format is the same as in \figref{compunrel}.}
     \label{fig:comp}%
 \end{figure}
