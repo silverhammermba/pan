@@ -9,11 +9,9 @@
 \newcommand{\figref}[1]{figure \ref{fig:#1}}
 \newcommand{\Figref}[1]{Figure \ref{fig:#1}}
 
-\newcommand{\tightframe}[1]{{\setlength{\fboxsep}{0pt}\setlength{\fboxrule}{1pt}\fbox{#1}}}
-
 \newtheorem{theorem}{Theorem}
 
-\title{Private Attribution Networks}
+\title{Attribution Privacy}
 \author{
 Maxwell Anselm\\
 Lehigh University\\
@@ -26,8 +24,6 @@ Bethlehem, PA 18015\\
 \maketitle
 
 \section{Introduction}
-
-motivation, summary, takeaway
 
 Peer-to-peer (P2P) networks are a common tool for sharing information. Most P2P
 architectures are completely open: the identities of the participants and the
@@ -43,42 +39,89 @@ applications where attribution privacy is a concern. We also classify when
 attribution privacy leaks can occur and measure the potential risk to peers
 participating in such a network.
 
-We consider a couple modifications that can be made to the P2P protocol in order
+We suggest a couple modifications that can be made to the P2P protocol in order
 to mitigate the attribution privacy leaks, and measure their efficacy as well as
-their performance impact. Lastly we define a private attribution network, which
-combines these methods to provide a balance of privacy and performance.
+their performance impact. We show that these protocol modifications can effectively
+protect attribution privacy.
 
-\section{Related Work}
+\section{Related Work}\label{sec:relwork}
 
-XRay, Chord (P2P), TOR, BitTorrent
+This work was motivated by our attempt to implement the XRay
+system\cite{xray} in a collaborative, P2P environment. XRay audits online
+advertisements to reverse-engineer the ad targeting criteria and thus determine
+if a company is exploiting one's sensitive information. It does this using a
+complicated system of data duplication and fake account management, but the
+authors of XRay note that ``a collaborative approach to auditing, in which users
+contribute their [data] in a privacy-preserving way is a promising
+direction...'' In such a system, users would participate in a P2P network where
+they freely share which ads appeared alongside which data in order to help other
+peers to determine the actual ad targeting (using differential correlation).
+We recognized that sharing such information could potentially leak the private
+information that was originally targeted by the ad. Formalizing this type of
+privacy leak lead to the definition in \secref{defn}. See \secref{xray} for a
+technical description of collaborative XRay as an attribution privacy risk.
 
-\section*{Main sections follow}
+Because attribution privacy applies to P2P networks, we examined possible P2P
+systems to which it might apply. Distributed hash tables (DHT) such as
+Chord\cite{chord} appeared to be a possible candidate since they have a notion
+of data attribution. However we found that our definition of attribution privacy
+does not exactly fit a $(\text{key},\text{value})$ model, but applies in a more
+general situation where a value may have fewer or more than 1 key. This fits a
+more traditional file-sharing model (e.g. BitTorrent) where data are duplicated
+throughout the network as peers demand them.
 
-solution, implementation, main challenges overcome
+We also considered other network privacy methods as possible solutions to
+attribution privacy leaks. Tor was considered because the anonymity it provides
+automatically provides attribution privacy as a side-effect (if you do not know
+with whom you are communicating, you cannot attribute the data to anyone).
+However we show by definition and by example that complete anonymity is not
+necessary in situations where attribution privacy is needed. This coupled with
+the fact that Tor requires additional infrastructure to function (the relay and
+exit nodes) and can significantly impact performance of the network make it a
+heavy-handed solution to a much smaller problem. However we do note that one of
+our proposed solutions could be extended to a Tor-like protocol for even greater
+privacy gains (\secref{future}).
 
-\section{Definitions}
+Attribution privacy also bears some similarity with differential privacy: both
+are concerned with preserving the utility of the data while protecting the
+privacy of the individual. Indeed, differential privacy could even be viewed as
+preventing statistical data from being ``attributed'' to an individual. However
+these two types of privacy are in actuality very different. Differential
+privacy involves a single data set that is queried in aggregate whereas attribution
+privacy allows for querying individuals on the network directly. Differential
+privacy attempts to ``hide'' individuals among noise in the response whereas
+attribution privacy does not allow for modification of the data and only
+attempts to hide the data's source. Despite these differences, we do find that a
+technique similar to differential privacy's ``randomized
+responses''\cite{randresps} works well
+for attribution privacy (\secref{unreliable}).
 
-We first define what information sharing means in our P2P network. We
-imagine a P2P network in which there are a fixed number of peers (the
-swarm) and all peers are aware of the other members of the swarm via some
-central authority (the tracker). These peers exchange messages via some secure
-channel such as HTTPS (perhaps using public keys synchronised through the
-tracker). Thus which peers are communicating with which is public information,
-while the contents of those messages is kept private from an observer.
+\section{Definitions}\label{sec:defn}
+
+We first define the mechanism and purpose of a P2P network. We imagine a P2P
+network in which there are a fixed number of peers (the swarm) and all peers are
+aware of the other members of the swarm via some central authority (the
+tracker). These peers exchange messages via some secure channel such as HTTPS
+(perhaps using public keys synchronised through the tracker). Thus which peers
+are communicating with which is public information, while the contents of those
+messages is kept private from an observer.
 
 Let $\mathcal{Q}$ be a set of public queries and let $\mathcal{D}$ be a set of
-public data about those queries. Intuitively, the elements of $\mathcal{Q}$
-represent the queries that a peer might make to other peers in the swarm, and
-$\mathcal{D}$ represents potential responses to those queries. Then we define a
-function $K:\mathcal{Q}\rightarrow 2^\mathcal{D}$ which maps queries to the set
-of possible responses to each query i.e. $\forall q\in\mathcal{Q},
+public data about those queries. Imagine the elements of $\mathcal{Q}$ as the
+queries that a peer might make to other peers in the swarm, and $\mathcal{D}$ as
+potential responses to those queries. Then we define a function
+$K:\mathcal{Q}\rightarrow 2^\mathcal{D}$ which maps queries to the set of
+possible responses to each query i.e. $\forall q\in\mathcal{Q},
 K(q)\subseteq\mathcal{D}$. The reason why peers participate in the network is to
 learn more about the ``knowledge function'' $K$. For example, we can imagine
 $\mathcal{Q}$ as a set of file names and $\mathcal{D}$ as a set of file
-fragments; then $K$ indicates which fragments correspond to which file names (and
-which are reused across multiple file names), so determining the value of $K(q)$
-amounts to downloading file $q$. Formally, a response $D\subseteq\mathcal{D}$ to
-a query $q\in\mathcal{Q}$ indicates that $D\subseteq K(q)$.
+fragments; then $K$ indicates which fragments correspond to which file names
+(and which are reused across multiple file names), so determining the value of
+$K(q)$ amounts to downloading file $q$. Formally, a response
+$D\subseteq\mathcal{D}$ to a query $q\in\mathcal{Q}$ indicates that $D\subseteq
+K(q)$. Although peers in the network may not yet know about $K$, we consider $K$
+to be public information in the sense that information about $K$ is shared
+freely with any peer that requests it.
 
 Next we define $\mathcal{S}$ to be the set of original sources of knowledge
 about $K$ in the network. If a peer possesses some source $s\in\mathcal{S}$,
@@ -99,7 +142,8 @@ For attribution privacy to come into play we need two conditions to hold:
 
 If these conditions hold, then it is possible for a public peer to share public
 data about a public query, and in doing so inadvertently communicate information
-about its private sources. That is an attribution privacy leak.
+about its private sources. In other words, it is possible for other peers to
+{\it attribute} the public data to its origin.
 
 \section{Applications}\label{sec:example}
 
@@ -124,20 +168,16 @@ name of a random Nickelback song is probably a Nickelback fan. By honestly
 providing the requested data, you have inadvertently revealed your private
 source. This is a P2P network where private attribution is needed.
 
-\subsection{XRay}
+\subsection{Collaborative Advertisement Auditing}\label{sec:xray}
 
-For a more technical example, consider the tool XRay\cite{xray}. XRay audits
-online advertisements to reverse-engineer the ad targeting criteria and thus
-determine if a company is exploiting one's sensitive information. It does this
-using a complicated system of data duplication and fake account management, but
-the authors note that ``a collaborative approach to auditing, in which users
-contribute their [data] in a privacy-preserving way is a promising
-direction...'' In such a system, users would participate in a P2P network where
-they freely share which ads they have seen and in association with which
-personal information. Then the network could collaborate to determine the ad
-targeting criteria.
+Consider a P2P system in which peers collaborate to determine how online
+advertisements are targeted. This is achieved by peers sharing which ads they
+have seen along with the personal data those ads appeared with. By comparing
+which data have/have not been present when certain ads were seen, the ad
+targeting criteria can be determined. See \secref{relwork} for a description of
+XRay, the tool which inspired this application.
 
-In this situation, $\mathcal{Q}$ is the set of online ads, $\mathcal{D}$ is the
+With such a system, $\mathcal{Q}$ is the set of online ads, $\mathcal{D}$ is the
 set of personal information that might be targeted, and $K$ represents the ad
 targeting criteria i.e. which personal data are targeted by which ads.
 Interestingly, the private sources $\mathcal{S}$ in this case are identical to
@@ -211,9 +251,15 @@ responds to a query})$ smaller than $P(S|H=k)$.
 
 \subsection{Unreliable Peers}\label{sec:unreliable}
 
-One simple approach to improving the privacy of the network is for the peers to be
-unreliable i.e. let $P(\text{respond to a query about }q|\text{have knowledge of
-}q)=r<1$. Now when $y$ queries the entire network, they can no longer be sure
+One simple approach to improving the privacy of the network is for the peers to
+be unreliable i.e. let $P(\text{respond to a query about }q|\text{have knowledge
+of }q)=r<1$. This is similar to the ``randomized response'' method of
+differential privacy\cite{randresps}, but with the crucial difference that a peer
+without knowledge of $q$ will never lie about it. Unlike differential
+privacy---which provides privacy at the expense of introducing noise into the
+data---we are interested in sharing only accurate data in the P2P network.
+
+Now when $y$ queries the entire network, they can no longer be sure
 that the peers who respond are all the peers who have the relevant knowledge.
 Thus we now have a new random variable $M\ne H$ which is the number of peers who
 respond to a query about $q$.
@@ -622,7 +668,7 @@ as expected, but apparently improves on both of them!
 
 \section{Discussion \& Conclusion}
 
-\subsection{Future Work}
+\subsection{Future Work}\label{sec:future}
 
 \begin{thebibliography}{9}
 
@@ -635,6 +681,16 @@ as expected, but apparently improves on both of them!
 	M. Rogers, S. Bhatti.
 	How to Disappear Completely: A Survey of Private Peer-to-Peer Networks.
 	\emph{Sustaining Privacy in Autonomous Collaborative Environments (SPACE)}, 2007.
+
+\bibitem{randresps}
+	C. Dwork, A. Roth.
+	The Algorithmic Foundations of Differential Privacy.
+	\emph{Foundations and Trends in Theoretical Computer Science} 9.3-4 (2014): 211-407.
+
+\bibitem{chord}
+	I. Stoica, R. Morris, D. Karger, M.F. Kaashoek, H. Balakrishnan.
+	Chord: A Scalable Peer-to-peer Lookup Service for {Internet} Applications.
+	\emph{Proceedings of the {ACM} {SIGCOMM} '01 Conference}, Aug 2001.
 
 \end{thebibliography}
 
