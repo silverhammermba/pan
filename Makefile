@@ -1,3 +1,4 @@
+.SECONDARY:
 .DELETE_ON_ERROR:
 
 all: report.pdf
