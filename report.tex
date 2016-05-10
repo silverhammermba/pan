@@ -93,7 +93,7 @@ heavy-handed solution to a much smaller problem. However we do note that one of
 our proposed solutions could be extended to a Tor-like protocol for even greater
 privacy gains (\secref{future}).
 
-Attribution privacy also bears some similarity with differential privacy: both
+Attribution privacy bears some similarity with differential privacy: both
 are concerned with preserving the utility of the data while protecting the
 privacy of the individual. Indeed, differential privacy could even be viewed as
 preventing statistical data from being ``attributed'' to an individual. However
@@ -397,7 +397,7 @@ Applying this change in protocol to our worst-case situation, we see that $y$
 still knows with $P(S|H=1)=1$ that $x$ has source $s$. However, afterwards $x$,
 $y$, and $t$ random peers are expected to know about $q$ thus the next peer
 to make a query has an expected advantage of only $P(S|H=t+2)$. We can minimize this
-probability by making $t$ even larger: $t=n-2$ means that $x$ sends extra
+probability by making $t$ even larger; $t=n-2$ means that $x$ sends extra
 responses to every other peer, and then the next peer won't query at all because
 every peer already has the data!
 
@@ -462,15 +462,19 @@ $\beta$.
 The point of sending out random extra responses would be defeated if
 $P(S|M=m)>P(S|H=m)$ because then the extra responses a peer sends out would
 actually leak more private information than if it were simply queried directly.
-However we showed with \thref{rbound} that $P(S|M=m)<P(S|H=m)$ if $r<1$ i.e. if
-$t<n-2$.
-To choose $t$, we first note
-a major difference from \secref{unreliable}: an attacker in this case
-has some control over $r$ and thus $M$. If we have a swarm of $n$ peers,
-an attacker can add $b$ malicious peers to the swarm. These malicious peers can
-share information among themselves, such as who they have received extra
-responses from. In effect, the $b$ peers behave like a single peer that has a
-higher chance of receiving extra responses. We call this a ``flooding attack''.
+However we showed with \thref{rbound} that $P(S|M=m)<P(S|H=m)$ if $r<1$
+therefore we must simply choose
+$t<n-2$. Unfortunately, a major difference in this situation compared to
+unreliable peers is that the
+attacker has some control over $r$ and thus $M$. If we have a swarm
+of $n$ peers, an attacker can add $b$ malicious peers to the swarm. These
+malicious peers can share information among themselves, such as who they have
+received extra responses from. In effect, the $b$ peers behave like a single
+peer that has a higher chance of receiving extra responses. We call this a
+``flooding attack'', as illustrated in \figref{flood}. We would be in trouble if the attacker could use this
+attack to force $r$ to be arbitrarily close to 1, because then the extra
+responses would leak about as much as the normal response. Thankfully this is
+not the case.
 
 \begin{theorem}
 	If extra responses are sent with probability $\frac{t}{n-2}$, then the
@@ -487,17 +491,19 @@ Let $B$ be the event that at least one of the $b$ malicious peers is sent an ext
 	\lim_{b\rightarrow\infty}P(B)&=1-\frac{1}{e^t}
 \end{align*}
 \end{proof}
-Even for $t=5$ this probability is very close one, so we must choose a small $t$
-if we consider such an attack to be viable.  Our only concern with small $t$
-might be that it does not cause the knowledge to spread ``quickly enough'' to
-provide a privacy benefit. However we will see in \secref{qgiveni} that even for
-$t=1$ (which provides a limit of $1-1/e\approx2/3$), knowledge propagates very
-quickly through the network.
+
+Thus extra responses will always leak less information, even if an attacker adds
+arbitrarily many peers to the network. But even for $t=5$ this probability bound
+is very close one, so we must choose a small $t$ if we consider such an attack
+to be viable.  Our only concern with small $t$ might be that it does not cause
+the knowledge to spread ``quickly enough'' to provide a privacy benefit. However
+we will see in \secref{qgiveni} that even for $t=1$ (which provides a limit of
+$1-1/e\approx2/3$), knowledge propagates very quickly through the network.
 
 Note that this leak also relies largely on the assumption that every peer
 queries every other peer in order to greedily determine as much private
 information as possible. In an actual P2P network, it is not necessary for each
-peer to query every other peer. Thus with non-greedy peers, when a peer (or
+peer to query every other peer (see \secref{future}). Thus with non-greedy peers, when a peer (or
 group of malicious peers) is
 {\it not} sent an extra response it is possible that it will also {\it not} receive the
 corresponding query for $q$---in which case it will be completely oblivious to the
@@ -652,7 +658,7 @@ to learn the knowledge, it is a decent measure of the worst-case performance of
 the network. We can see that for a small number of origins, while the smaller
 values of $Q$ have the highest probabilities, $P(Q|I)$ has a long tail,
 indicating that in some cases we might require significantly more queries
-overall before the knowledge spreads.
+before the knowledge has fully spread.
 
 \begin{figure}%
     \centering
@@ -671,8 +677,9 @@ but note that the scale for $Q$ is much smaller: even for 1 origin, it is
 unlikely to take more than 14 queries for the knowledge to spread completely.
 This is because each successful query only slightly increases the chance of each
 extra response being sent, but overall the number of extra responses causes the
-knowledge to spread throughout the network at an exponential rate. This
-alleviates our concern of using small $t$ that we had from \secref{exre}.
+knowledge to spread throughout the network at an (approximately) exponential
+rate. Since this example is for $t=1$, we were no longer concerned with the
+performance impact of small $t$ from \secref{exre}.
 
 \begin{figure}%
     \centering
@@ -691,7 +698,7 @@ extra responses. The result is shown in \figref{unexrequeries}. As we might expe
 resulting distribution exhibits a mix of those from figures
 \ref{fig:unrelqueries} and \ref{fig:exrequeries}: slow convergence to a uniform
 distribution with a moderately long tail. We observe in \secref{eval} that this
-also translates to good privacy performance.
+translates to good privacy performance.
 
 \section{Evaluation}\label{sec:eval}
 
@@ -724,14 +731,15 @@ in terms of $P(S|\text{$x$ responds to a query})$.
 Our first question was about the effect of differing $r$ on the unreliable peers
 protocol. The results of these measurements are shown in \figref{compunrel}.
 The ``Worst case'' line is the leakage in the simple deterministic case from
-\secref{baseline} where the leakage is simply given by $P(S|H=k)$. Note that
+\secref{baseline} where the leakage is given by $P(S|H=k)$. Note that
 this is equivalent to the unreliable peers protocol with $r=1$. Because the
 leakage of unreliable peers is given by $P(S|M=m)$, this figure
 indicates that $P(S|M=m)$ converges to $P(S|H=k)$ as $m$ and $k$ increase and
 that decreasing $r$ delays this convergence. For example, $r=0.8$ provides a
 slight privacy benefit to only the first peer that is queried because it is nearly identical
-by the second peer, whereas $r=0.2$ provides a privacy benefit to the first
-three or four peers. Because the worst-case leakage approaches $P(S)$, we can
+to the worst case by the second peer, whereas $r=0.2$ provides a privacy benefit to the first
+three or four peers. Because the worst-case leakage approaches $P(S)$ for later
+queries, we can
 choose a point at which we deem this leakage negligible and choose $r$ such that
 the convergence occurs after this point.
 
