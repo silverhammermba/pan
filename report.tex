@@ -423,7 +423,41 @@ peer responds probabilistically, which is exactly the situation with unreliable
 peers, only now $r=t/(n-2)$ and $M$ is the number of extra responses received by
 $\beta$.
 
-% TODO diagram showing flooding attack
+\begin{figure}
+	\centering
+	\begin{tikzpicture}[
+		peer/.style={draw,shape=circle},
+		bad/.style={draw,shape=circle,color=purple},
+		query/.style={->,line width=1.5pt},
+		resp/.style={->,line width=1.5pt,dashed}
+	]
+	\node[peer] (x) at (0, 0.25) {$x$};
+	\node[peer] (w) at (0.25, 2.5) {$w$};
+	\node[peer] (z) at (2.5, 0) {$z$};
+	\node[peer] (y) at (2.25, 1.75) {$y$};
+
+	\node[bad] (b1) at (3.3, 2.25) {$\beta_1$};
+	\node[bad] (b2) at (4.4, 2) {$\beta_2$};
+	\node[bad] (b3) at (3.6, 1.15) {$\beta_3$};
+	\node[bad] (b4) at (4.7, 1) {$\beta_4$};
+	\node[bad] (b5) at (3.5, 0.25) {$\beta_5$};
+	\node[bad] (b6) at (4.5, 0) {$\beta_6$};
+
+	\draw[query] (y) to (w);
+	\draw[query,out=250,in=100] (y) to (z);
+
+	\draw[query,out=200,in=60] (y) to (x);
+	\draw[resp,out=30,in=230] (x) to (y);
+	\draw[resp,out=0,in=180] (x) to (z);
+	\draw[resp,out=20,in=180] (x) to (b3);
+	\draw[resp,out=10,in=150] (x) to (b5);
+	\end{tikzpicture}
+	\caption{A flooding attack against the extra responses protocol. As in \figref{attack},
+	black lines are queries, dashed lines are responses. An attacker
+	adding malicious peers to the network increases their chance of receiving an
+	extra response from $x$ after $y$ makes a query.}
+	\label{fig:flood}
+\end{figure}
 
 The point of sending out random extra responses would be defeated if
 $P(S|M=m)>P(S|H=m)$ because then the extra responses a peer sends out would
