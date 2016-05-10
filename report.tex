@@ -1,5 +1,6 @@
 \documentclass{article}
-\usepackage{./nips15submit_e,amsmath,amsthm,graphicx,subfig,flafter}
+\usepackage{./nips15submit_e,amsmath,amsthm,graphicx,subfig,flafter,tikz}
+\usetikzlibrary{shapes,fit}
 
 \newcommand{\eqnref}[1]{equation \eqref{eq:#1}}
 \newcommand{\Eqnref}[1]{Equation \eqref{eq:#1}}
@@ -199,6 +200,62 @@ attribution privacy.
 \section{Privacy Risk}\label{sec:prrsk}
 \subsection{Baseline}\label{sec:baseline}
 
+\begin{figure}
+    \centering
+	\subfloat[One response]{
+	\begin{tikzpicture}[
+			peer/.style={draw,shape=circle},
+			query/.style={->,line width=1.5pt},
+			resp/.style={->,line width=1.5pt,dashed}
+			]
+	\node[peer] (x) at (0, 0.25) {$x$};
+	\node[peer] (w) at (0.25, 2.5) {$w$};
+	\node[peer] (z) at (2.5, 0) {$z$};
+	\node[peer] (y) at (2.25, 1.75) {$y$};
+
+	\node (s) at (-0.5, 1) {$s$};
+
+	\node[ellipse,draw=red,dotted,line width=2pt, fit=(s) (x)] {};
+
+	\draw[query] (y) to (w);
+	\draw[query,out=250,in=100] (y) to (z);
+
+	\draw[query,out=200,in=60] (y) to (x);
+	\draw[resp,out=30,in=230] (x) to (y);
+	\end{tikzpicture}
+}
+\qquad
+	\subfloat[Two responses]{
+	\begin{tikzpicture}[
+			peer/.style={draw,shape=circle},
+			query/.style={->,line width=1.5pt},
+			resp/.style={->,line width=1.5pt,dashed}
+			]
+	\node[peer] (x) at (0, 0.25) {$x$};
+	\node[peer] (w) at (0.25, 2.5) {$w$};
+	\node[peer] (z) at (2.5, 0) {$z$};
+	\node[peer] (y) at (2.25, 1.75) {$y$};
+
+	\node (s) at (1.25, 0) {$s$};
+
+		\node[ellipse,draw=red,dotted,line width=2pt, fit=(s) (x) (z)] {};
+
+	\draw[query] (y) to (w);
+
+	\draw[query,out=200,in=60] (y) to (x);
+	\draw[resp,out=30,in=230] (x) to (y);
+
+	\draw[query,out=250,in=100] (y) to (z);
+	\draw[resp,out=80,in=280] (z) to (y);
+	\end{tikzpicture}
+}
+	\caption{An attribution privacy leak. Black lines represent queries, dashed
+	lines represent responses to a query. $y$ gains different amounts of
+	information about the location of source $s$ depending on how many peers
+	respond.}
+	\label{fig:attack}
+\end{figure}
+
 To measure the attribution privacy risk in a P2P network, we start with the worst-case scenario. Suppose that for knowledge about some $q$
 there is only a single source $s$, only a single peer $x$ with access to that
 source (i.e. a single origin), and that $x$ has not shared any knowledge of $q$
@@ -212,15 +269,14 @@ the network is closed, $y$ also knows that there must be a source for $q$ among
 the peers who know about $q$. Thus $x$ must possess a source for $q$ and since
 we assumed there was only one such source, it must be $s$. Thus by sharing their
 knowledge about $q$, $x$ has inadvertently shared the fact that they possess
-source $s$.
+source $s$. This is illustrated in \figref{attack}(a).
 
-% TODO diagram showing leakage for one/two peers responding
 
 We can reason that this is the worst possible case as follows: if there were
 multiple sources related to $q$, then $y$ would only know that $x$ possesses one
 of those sources; it would not necessarily know which one. Also, if there were
 multiple peers with access to a source for $q$, then multiple peers would
-respond when $y$ queries every peer about $q$. The same would occur if $x$ had
+respond when $y$ queries every peer about $q$ (see \figref{attack}(b)). The same would occur if $x$ had
 previously shared knowledge about $q$ with other peers in the network. In both
 of these cases we can quantify the information gained by $y$. Let $S$ be the
 event that one of the peers is an origin for $q$ (i.e. has
