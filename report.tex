@@ -40,7 +40,7 @@ applications where attribution privacy is a concern. We also classify when
 attribution privacy leaks can occur and measure the potential risk to peers
 participating in such a network.
 
-We suggest a couple modifications that can be made to the P2P protocol in order
+We suggest two modifications that can be made to the P2P protocol in order
 to mitigate the attribution privacy leaks, and measure their efficacy as well as
 their performance impact. We show that these protocol modifications can effectively
 protect attribution privacy.
@@ -69,17 +69,18 @@ protecting non-participants in the network from seeing what data are being
 exchanged\cite{privatep2p}. We suspect that this is due to the strong
 association of P2P networks with illegal file-sharing. Although extant private
 P2P software would make attribution privacy a moot point (since they ensure that
-you can trust the other peers), we show that this level of privacy is
-completely independent of attribution privacy.
+the other peers are trusted), trusted peers are not a requirement of attribution
+privacy.
 
 Because attribution privacy applies to P2P networks, we examined possible P2P
 systems to which it might apply. Distributed hash tables (DHT) such as
-Chord\cite{chord} appeared to be a possible candidate since they have a notion
-of data attribution. However we found that our definition of attribution privacy
-does not exactly fit a $(\text{key},\text{value})$ model, but applies in a more
-general situation where a value may have fewer or more than 1 key. This fits a
-more traditional file-sharing model (e.g. BitTorrent) where data are duplicated
-throughout the network as peers demand them.
+Chord\cite{chord} appeared to be a possible candidate since the idea of mapping
+keys to values is a kind of data attribution. However our definition of
+attribution (\secref{defn}) takes a more general form which does not exactly
+fit the key-value model of a hash table. Protocols like BitTorrent where peers
+freely produce and exchange information are more fitting, though we attempt to
+define attribution privacy as generally as possible to fit many possible
+P2P networks.
 
 We also considered other network privacy methods as possible solutions to
 attribution privacy leaks. The anonymity provided by Tor
@@ -93,7 +94,7 @@ heavy-handed solution to a much smaller problem. However we do note that one of
 our proposed solutions could be extended to a Tor-like protocol for even greater
 privacy gains (\secref{future}).
 
-Attribution privacy bears some similarity with differential privacy: both
+Attribution privacy bears some similarity with differential privacy\cite{randresps}: both
 are concerned with preserving the utility of the data while protecting the
 privacy of the individual. Indeed, differential privacy could even be viewed as
 preventing statistical data from being ``attributed'' to an individual. However
@@ -104,45 +105,54 @@ privacy attempts to ``hide'' individuals among noise in the response whereas
 attribution privacy does not allow for modification of the data and only
 attempts to hide the data's source. Despite these differences, we do find that a
 technique similar to differential privacy's ``randomized
-responses''\cite{randresps} works well
+responses'' works well
 for attribution privacy (\secref{unreliable}).
 
 \section{Definitions}\label{sec:defn}
 
-We first define the mechanism and purpose of a P2P network. We imagine a P2P
-network in which there are a fixed number of peers (the swarm) and all peers are
-aware of the other members of the swarm via some central authority (the
-tracker). These peers exchange messages via some secure channel such as HTTPS
-(perhaps using public keys synchronised through the tracker). Thus which peers
-are communicating with which is public information, while the contents of those
-messages is kept private from an observer.
+Because we will define attribution privacy with respect to a P2P network, we
+first define the mechanism and purpose of the P2P network. We imagine a P2P
+network in which there are a fixed number of peers and there is some mechanism
+by which all peers are aware of all other peers in the network. These peers exchange
+messages via some secure channel such as HTTPS. Thus which peers are
+communicating with which is public information, while the contents of those
+messages is kept private from an observer. These assumptions are similar to a
+BitTorrent swarm with a central tracker.
 
 Let $\mathcal{Q}$ be a set of public queries and let $\mathcal{D}$ be a set of
 public data about those queries. Imagine the elements of $\mathcal{Q}$ as the
-queries that a peer might make to other peers in the swarm, and $\mathcal{D}$ as
+queries that a peer might make to other peers, and $\mathcal{D}$ as
 potential responses to those queries. Then we define a function
 $K:\mathcal{Q}\rightarrow 2^\mathcal{D}$ which maps queries to the set of
 possible responses to each query i.e. $\forall q\in\mathcal{Q},
-K(q)\subseteq\mathcal{D}$. The reason why peers participate in the network is to
-learn more about the ``knowledge function'' $K$. For example, we can imagine
-$\mathcal{Q}$ as a set of file names and $\mathcal{D}$ as a set of file
-fragments; then $K$ indicates which fragments correspond to which file names
-(and which are reused across multiple file names), so determining the value of
-$K(q)$ amounts to downloading file $q$. Formally, a response
-$D\subseteq\mathcal{D}$ to a query $q\in\mathcal{Q}$ indicates that $D\subseteq
-K(q)$. Although peers in the network may not yet know about $K$, we consider $K$
-to be public information in the sense that information about $K$ is shared
+K(q)\subseteq\mathcal{D}$. Note that each query can have many possible
+responses, and a single peer can respond with several of these responses at
+once. Formally, a response $D\subseteq\mathcal{D}$ to a query $q\in\mathcal{Q}$
+means $D\subseteq K(q)$.
+
+The reason why peers participate in the network is to learn more about the
+``knowledge function'' $K$. For example, we can imagine $\mathcal{Q}$ as a set
+of file names and $\mathcal{D}$ as a set of file fragments; then $K$ indicates
+which fragments correspond to which file names (and which are reused across
+multiple file names), so determining the value of $K(q)$ amounts to downloading
+file $q$. Although peers in the network may not yet know about $K$, we consider
+$K$ to be public information in the sense that information about $K$ is shared
 freely with any peer that requests it.
 
 Next we define $\mathcal{S}$ to be the set of original sources of knowledge
-about $K$ in the network. If a peer possesses some source $s\in\mathcal{S}$,
-then they can receive some information $D_s\subseteq K(q_s)$ {\it without}
-querying another peer in the network. In this case we say that the peer {\it
-originates} (or is the {\it origin} of) $D_s\subseteq K(q_s)$. We assume that
-the network is otherwise closed, so if a peer wants to learn about $K(q)$ for
-some $q$, there need to be peers in the network with sources pertaining to $q$.
+about $K$ in the network. For every $s\in\mathcal{S}, \exists
+q_s\in\mathcal{Q},D_s\subseteq\mathcal{D}$ such that $D_s\subseteq K(q_s)$. We
+say that a peer ``has access to $s$'' (or just ``has $s$'') if that peer knows
+$D_s\subseteq K(q_s)$ {\it without} querying another peer in the network. You
+can think of the network as a closed system except for these sources which
+inject knowledge into the network via the peers that have access to them.
+Thus for any response $D\subseteq K(q)$, there must be a source $s$ that
+corresponds to $D$ and $q$ and some peer in the network must have access to $s$.
+In that case we would say that that peer is the ``origin of'' (or
+``originates'') $D\subseteq K(q)$.
 
-For attribution privacy to come into play we need two conditions to hold:
+For attribution privacy to be a concern we need the following two conditions to
+hold:
 \begin{enumerate}
 	\item The sources must be private. That is, a peer with access to some
 		$s\in\mathcal{S}$ does not want it to be known publicly.
@@ -177,7 +187,9 @@ song name. The townspeople would be able to apply their public knowledge of the
 sources to discover your private information: namely that a person who knows the
 name of a random Nickelback song is probably a Nickelback fan. By honestly
 providing the requested data, you have inadvertently revealed your private
-source. This is a P2P network where private attribution is needed.
+source. With the methods we introduce for attribution privacy, you would be able
+to disclose your knowledge of Nickelback without (as much) fear of revealing
+your fandom.
 
 \subsection{Collaborative Advertisement Auditing}\label{sec:xray}
 
@@ -194,8 +206,11 @@ targeting criteria i.e. which personal data are targeted by which ads.
 Interestingly, the private sources $\mathcal{S}$ in this case are identical to
 $\mathcal{D}$: if you originate the knowledge that a particular ad targets
 particular data, then informing others of that association also divulges that
-you possess the targeted data. Such a P2P network must concern itself with its members'
-attribution privacy.
+you possess the targeted data.
+
+Such a P2P system could integrate our attribution privacy protocols to ensure
+that peers can freely share which ads they have seen without revealing the
+private data that those ads targeted.
 
 \section{Privacy Risk}\label{sec:prrsk}
 \subsection{Baseline}\label{sec:baseline}
@@ -403,7 +418,7 @@ every peer already has the data!
 
 But this view is oversimplified. Although this does minimize the posterior
 probability of $x$ having $s$ following a query, it just leaks the
-information earlier in the process. For example, consider a swarm of just four
+information earlier in the process. For example, consider a network of just four
 peers $x$, $y$, $\beta$, and $\gamma$ and suppose that $t=2$. $y$ starts as usual by
 querying every peer about $q$ ($x$, $\beta$, and $\gamma$). Only $x$ has knowledge of
 $q$, so it responds to $y$ and sends extra responses with probability
@@ -466,8 +481,8 @@ However we showed with \thref{rbound} that $P(S|M=m)<P(S|H=m)$ if $r<1$
 therefore we must simply choose
 $t<n-2$. Unfortunately, a major difference in this situation compared to
 unreliable peers is that the
-attacker has some control over $r$ and thus $M$. If we have a swarm
-of $n$ peers, an attacker can add $b$ malicious peers to the swarm. These
+attacker has some control over $r$ and thus $M$. If we have a network
+of $n$ peers, an attacker can add $b$ malicious peers to the network. These
 malicious peers can share information among themselves, such as who they have
 received extra responses from. In effect, the $b$ peers behave like a single
 peer that has a higher chance of receiving extra responses. We call this a
@@ -529,7 +544,7 @@ since we need to assume sources exist in order to query for $q$. But this will
 most likely not be accurate since queries have probably occurred between other
 peers, thus changing the distribution of $H$.
 
-However, assuming that our peers greedily query every other peer in the swarm
+However, assuming that our peers greedily query every other peer
 (in order to gain as much private knowledge as possible), we would know a priori
 how many queries have been made for $q$. Thus our prior should really be
 $P(H|Q)$ where $Q$ is the number of previously made queries for $q$. Even in the
